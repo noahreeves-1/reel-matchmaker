@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { MovieDetails } from "@/components/movies";
+import { MovieDetailsWithBreadcrumbs } from "@/components/movies";
 import { getMovieData } from "@/hooks/server";
 
 // Generate metadata for SEO
@@ -52,5 +52,5 @@ export default async function MoviePage({
     notFound();
   }
 
-  return <MovieDetails movie={movie} />;
+  return <MovieDetailsWithBreadcrumbs movie={movie} />;
 }

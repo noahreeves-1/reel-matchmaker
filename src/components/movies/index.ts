@@ -1,6 +1,7 @@
 export { MovieCard } from "./MovieCard";
 export { MovieCast } from "./MovieCast";
 export { MovieDetails } from "./MovieDetails";
+export { MovieDetailsWithBreadcrumbs } from "./MovieDetailsWithBreadcrumbs";
 export { MovieGrid } from "./MovieGrid";
 export { MovieHero } from "./MovieHero";
 export { MovieApp } from "./MovieApp";

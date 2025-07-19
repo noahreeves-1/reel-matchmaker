@@ -8,42 +8,74 @@ import { MovieCast } from "./MovieCast";
 import { MovieTrailers } from "./MovieTrailers";
 import { formatCurrency, getDirectors, getWriters } from "@/lib/movieUtils";
 
-interface MovieDetailsProps {
-  movie: TMDBMovie;
+interface BreadcrumbItem {
+  label: string;
+  href?: string;
 }
 
-export const MovieDetails = ({ movie }: MovieDetailsProps) => {
+interface MovieDetailsProps {
+  movie: TMDBMovie;
+  breadcrumbs?: BreadcrumbItem[];
+}
+
+export const MovieDetails = ({ movie, breadcrumbs }: MovieDetailsProps) => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       {/* Breadcrumb Navigation */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <nav className="mb-6">
           <ol className="flex items-center space-x-2 text-sm text-slate-600 dark:text-slate-400">
-            <li>
-              <Link
-                href="/"
-                className="hover:text-slate-900 dark:hover:text-white transition-colors"
-              >
-                Home
-              </Link>
-            </li>
-            <li>
-              <span className="text-slate-400">/</span>
-            </li>
-            <li>
-              <Link
-                href="/movies"
-                className="hover:text-slate-900 dark:hover:text-white transition-colors"
-              >
-                Movies
-              </Link>
-            </li>
-            <li>
-              <span className="text-slate-400">/</span>
-            </li>
-            <li className="text-slate-900 dark:text-white font-medium">
-              {movie.title}
-            </li>
+            {breadcrumbs ? (
+              <>
+                {breadcrumbs.map((item, index) => (
+                  <li key={index}>
+                    {item.href ? (
+                      <Link
+                        href={item.href}
+                        className="hover:text-slate-900 dark:hover:text-white transition-colors"
+                      >
+                        {item.label}
+                      </Link>
+                    ) : (
+                      <span className="text-slate-900 dark:text-white font-medium">
+                        {item.label}
+                      </span>
+                    )}
+                    {index < breadcrumbs.length - 1 && (
+                      <span className="text-slate-400 ml-2">/</span>
+                    )}
+                  </li>
+                ))}
+              </>
+            ) : (
+              <>
+                <li>
+                  <Link
+                    href="/"
+                    className="hover:text-slate-900 dark:hover:text-white transition-colors"
+                  >
+                    Home
+                  </Link>
+                </li>
+                <li>
+                  <span className="text-slate-400 ml-2">/</span>
+                </li>
+                <li>
+                  <Link
+                    href="/movies"
+                    className="hover:text-slate-900 dark:hover:text-white transition-colors"
+                  >
+                    Popular Movies
+                  </Link>
+                </li>
+                <li>
+                  <span className="text-slate-400 ml-2">/</span>
+                </li>
+                <li className="text-slate-900 dark:text-white font-medium">
+                  {movie.title}
+                </li>
+              </>
+            )}
           </ol>
         </nav>
       </div>

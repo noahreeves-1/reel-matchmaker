@@ -25,6 +25,14 @@ export const MovieCard = ({
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const handleMovieClick = () => {
+    // Store the current page path in sessionStorage before navigating
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("previousPage", window.location.pathname);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden animate-pulse">
@@ -45,7 +53,11 @@ export const MovieCard = ({
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-md transition-shadow duration-200">
-      <Link href={`/movies/${movie.id}`} className="block">
+      <Link
+        href={`/movies/${movie.id}`}
+        className="block"
+        onClick={handleMovieClick}
+      >
         <div className="relative aspect-[2/3] bg-slate-200 dark:bg-slate-700">
           {posterUrl ? (
             <Image
@@ -66,7 +78,11 @@ export const MovieCard = ({
           {/* Rating button overlay */}
           {isClient && (
             <button
-              onClick={() => onOpenRatingModal?.(movie)}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                onOpenRatingModal?.(movie);
+              }}
               className={`absolute top-2 left-2 px-2 py-1 rounded-full flex items-center justify-center transition-all duration-200 ${
                 userRating
                   ? "bg-yellow-500 text-white"
