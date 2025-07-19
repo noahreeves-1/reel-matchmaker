@@ -1,0 +1,11 @@
+---
+alwaysApply: true
+---
+
+## Tech Stack
+
+- Frontend: TypeScript, Next.js (App Router), TailwindCSS, Shadcn/UI
+- Backend: AI recommendation via OpenAI (Edge Function)
+- External APIs: TMDB (for movie data), AI SDK (OpenAI api key)
+- Deployment: Vercel
+- Storage: localStorage (liked movies), no database required

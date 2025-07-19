@@ -1,0 +1,98 @@
+---
+description: A step-by-step build of ReelTaste, a movie recommender using TMDB + AI + Vercel rendering strategies.
+globs:
+alwaysApply: false
+---
+
+# ReelTaste – Movie Recommender MVP
+
+<!-- Overview -->
+
+## Overview
+
+ReelTaste is a lightweight movie recommendation web app. Users rate movies on a ranking of 1-10 from a real-time TMDB API feed, and receive AI-powered recommendations based on their taste. The app demonstrates core Vercel and Next.js capabilities including SSR, ISR, streaming, and image optimization. No auth is required.
+
+<!-- Features -->
+
+## Features
+
+- Browse popular movies (from TMDB)
+- Rate movies (saved to localStorage)
+- Generate 3 AI-powered movie recommendations based on liked movies
+- View detailed movie pages (ISR cached)
+- Fully responsive design
+- Clean MVP with no login
+
+<!-- Database Schema -->
+
+## Database Schema
+
+<!-- No database is used in this MVP. Everything is handled via localStorage and TMDB API. -->
+
+<!-- API Endpoints -->
+
+## API Endpoints
+
+1. /api/recommend
+
+- Method: POST
+- Input: List of rated movie titles + optional genres
+- Output: 3 recommended movie titles + reasons
+- Runtime: Edge Function (AI Gateway or custom fetch)
+
+2. /api/tmdb-proxy
+
+- (Optional) Use this to proxy TMDB API calls if hitting rate limits or hiding API key
+
+<!-- Environment Variables -->
+
+## Environment Variables
+
+- TMDB_API_KEY
+- OPENAI_API_KEY
+
+<!-- Implementation Details -->
+
+## Implementation Details
+
+<!-- Security -->
+
+### Security
+
+- TMDB API key stored in environment variable and optionally proxied
+- No PII handled, no auth used
+
+<!-- Scalability -->
+
+### Scalability
+
+- Popular movies page uses SSR for real-time freshness
+- Movie detail pages use ISR with 5-minute revalidation to reduce API hits
+- AI recommendations via Edge Function for low latency
+
+<!-- Performance -->
+
+### Performance
+
+- Uses `next/image` for movie posters with optimization
+- Edge streaming for fast AI responses
+- Lightweight design for mobile and desktop
+
+<!-- Development Milestones -->
+
+## Development Milestones
+
+<!-- Day 1 -->
+
+- [ ] Setup Next.js project with Tailwind and Shadcn
+- [ ] Implement SSR route for homepage to fetch TMDB popular movies
+- [ ] Save rated movies to localStorage
+- [ ] Add \"Generate Recommendations\" UI and hook
+
+<!-- Day 2 -->
+
+- [ ] Create Edge Function endpoint for AI recommendations
+- [ ] Build movie detail pages with ISR
+- [ ] Add loading/skeleton states and error fallback
+- [ ] Add minimal styling + attribution footer
+- [ ] Final Vercel deployment and polish

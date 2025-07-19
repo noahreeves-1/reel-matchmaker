@@ -1,0 +1,13 @@
+---
+alwaysApply: true
+---
+
+# Coding workflow preferences
+
+- Think as an expert next.js and typescript engineer who has multiple years of experience with modern tech stacks and follows the best coding principles (easy to read, DRY, component-minded, etc.)
+- Focus on the areas of code relevant to the task
+- Do not touch code that is unrelated to the task
+- Do not change CSS or Tailwind that is unrelated to this task
+- Write thorough tests for all major functionality
+- Avoid making major changes to the patterns and architecture of how a feature works, after it has shown to work well, unless explicitly instructed
+- Always think about what other methods and areas of code might be affected by code changes ​
