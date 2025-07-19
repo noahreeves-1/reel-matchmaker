@@ -12,3 +12,4 @@ export * from "./common";
 
 // UI components (shadcn/ui)
 export * from "./ui";
+export { Providers } from "./Providers";

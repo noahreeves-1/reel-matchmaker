@@ -1,39 +1,53 @@
-import { useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { getPopularMovies, searchMovies } from "@/lib/api";
-import { TMDBMovie, TMDBResponse } from "@/lib/tmdb";
+import { TMDBResponse } from "@/lib/tmdb";
+import { useState } from "react";
 
-export const useMovies = (initialMovies?: TMDBResponse) => {
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // Query for popular movies
-  const popularMoviesQuery = useInfiniteQuery({
-    queryKey: ["popular-movies"],
+/**
+ * Hook for fetching popular movies with infinite pagination
+ */
+export const usePopularMovies = (initialData?: TMDBResponse) => {
+  return useInfiniteQuery({
+    queryKey: ["movies", "popular"],
     queryFn: ({ pageParam }) => getPopularMovies(pageParam),
     getNextPageParam: (lastPage) =>
       lastPage.page < lastPage.total_pages ? lastPage.page + 1 : undefined,
     initialPageParam: 1,
-    initialData: initialMovies
+    initialData: initialData
       ? {
-          pages: [initialMovies],
+          pages: [initialData],
           pageParams: [1],
         }
       : undefined,
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes
   });
+};
 
-  // Query for search results
-  const searchMoviesQuery = useInfiniteQuery({
-    queryKey: ["search-movies", searchQuery],
-    queryFn: ({ pageParam }) => searchMovies(searchQuery, pageParam),
+/**
+ * Hook for searching movies with infinite pagination
+ */
+export const useMovieSearch = (searchTerm: string) => {
+  return useInfiniteQuery({
+    queryKey: ["movies", "search", searchTerm],
+    queryFn: ({ pageParam }) => searchMovies(searchTerm, pageParam),
     getNextPageParam: (lastPage) =>
       lastPage.page < lastPage.total_pages ? lastPage.page + 1 : undefined,
     initialPageParam: 1,
-    enabled: !!searchQuery.trim(),
+    enabled: !!searchTerm.trim(),
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes
   });
+};
+
+/**
+ * Combined hook for movies (popular or search results)
+ */
+export const useMovies = (initialData?: TMDBResponse) => {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const popularMoviesQuery = usePopularMovies(initialData);
+  const searchMoviesQuery = useMovieSearch(searchQuery);
 
   // Determine which query to use
   const activeQuery = searchQuery.trim()

@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
-import { getRatedMovies, removeRating } from "../lib/localStorage";
-import { RatedMovie } from "../types/movie";
-import { useMovieDetailsBatch } from "./useMovieDetails";
+import { getRatedMovies, removeRating } from "@/lib/localStorage";
+import { RatedMovie } from "@/types/movie";
+import { useMovieDetailsBatch } from "../queries/useMovieDetails";
 
+/**
+ * Hook for managing user's rated movies
+ */
 export const useRatedMovies = () => {
   const [ratedMovies, setRatedMovies] = useState<RatedMovie[]>([]);
   const [confirmDialog, setConfirmDialog] = useState<{

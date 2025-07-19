@@ -1,6 +1,9 @@
 import { useState } from "react";
-import { TMDBMovie } from "../lib";
+import { TMDBMovie } from "@/lib/tmdb";
 
+/**
+ * Hook for managing the rating modal state
+ */
 export const useRatingModal = () => {
   const [ratingModal, setRatingModal] = useState<{
     isOpen: boolean;

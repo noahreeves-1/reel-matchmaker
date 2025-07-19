@@ -2,9 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { getMovieDetails } from "@/lib/api";
 import { TMDBMovie } from "@/lib/tmdb";
 
+/**
+ * Hook for fetching a single movie's details
+ */
 export const useMovieDetails = (movieId: number | null) => {
   return useQuery({
-    queryKey: ["movie", movieId],
+    queryKey: ["movie", "details", movieId],
     queryFn: () => getMovieDetails(movieId!),
     enabled: !!movieId,
     staleTime: 1000 * 60 * 60 * 24, // 24 hours
@@ -12,9 +15,12 @@ export const useMovieDetails = (movieId: number | null) => {
   });
 };
 
+/**
+ * Hook for fetching multiple movies' details in batch
+ */
 export const useMovieDetailsBatch = (movieIds: number[]) => {
   return useQuery({
-    queryKey: ["movies", movieIds],
+    queryKey: ["movies", "details", movieIds],
     queryFn: async () => {
       const moviePromises = movieIds.map((id) => getMovieDetails(id));
       const movies = await Promise.all(moviePromises);
