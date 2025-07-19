@@ -26,7 +26,7 @@ export const RecommendationsSection = ({
   const hasRecommendations = recommendations.length > 0;
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-8">
+    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-16">
       <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
         Your Recommendations
       </h3>

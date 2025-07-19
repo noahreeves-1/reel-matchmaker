@@ -115,20 +115,18 @@ export const MovieApp = ({ initialMovies }: MovieAppProps) => {
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Hero />
+        <Hero
+          onSearch={performSearch}
+          onClear={clearSearch}
+          isLoading={isSearching}
+          searchQuery={searchQuery}
+        />
 
         <RecommendationsSection
           ratedMoviesCount={ratedMovies.length}
           onGenerateRecommendations={handleGenerateRecommendations}
           isLoading={isGeneratingRecommendations}
           recommendations={recommendations}
-        />
-
-        <MovieSearch
-          onSearch={performSearch}
-          onClear={clearSearch}
-          isLoading={isSearching}
-          searchQuery={searchQuery}
         />
 
         {movieError ? (

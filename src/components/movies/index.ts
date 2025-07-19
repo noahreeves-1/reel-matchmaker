@@ -11,6 +11,7 @@ export { MyMoviesPage } from "./MyMoviesPage";
 export { RatingModal } from "./RatingModal";
 export { RecommendationsSection } from "./RecommendationsSection";
 export { MovieSearch } from "./MovieSearch";
+export { MovieSearchStandalone } from "./MovieSearchStandalone";
 
 // Re-export layout and common components
 export { Header, Hero, Footer } from "@/components/layout";
