@@ -1,16 +1,16 @@
 ---
-description: A step-by-step build of ReelTaste, a movie recommender using TMDB + AI + Vercel rendering strategies.
+description: A step-by-step build of Reel Matchmaker, a movie recommender using TMDB + AI + Vercel rendering strategies.
 globs:
 alwaysApply: false
 ---
 
-# ReelTaste – Movie Recommender MVP
+# Reel Matchmaker – Movie Recommender MVP
 
 <!-- Overview -->
 
 ## Overview
 
-ReelTaste is a lightweight movie recommendation web app. Users rate movies on a ranking of 1-10 from a real-time TMDB API feed, and receive AI-powered recommendations based on their taste. The app demonstrates core Vercel and Next.js capabilities including SSR, ISR, streaming, and image optimization. No auth is required.
+Reel Matchmaker is a lightweight movie recommendation web app. Users rate movies on a ranking of 1-10 from a real-time TMDB API feed, and receive AI-powered recommendations based on their taste. The app demonstrates core Vercel and Next.js capabilities including SSR, ISR, streaming, and image optimization. No auth is required.
 
 <!-- Features -->
 

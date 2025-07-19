@@ -12,6 +12,80 @@ export interface TMDBMovie {
   vote_count: number;
   genre_ids: number[];
   popularity: number;
+  // Additional fields for detailed movie info
+  runtime?: number;
+  status?: string;
+  tagline?: string;
+  budget?: number;
+  revenue?: number;
+  genres?: Array<{ id: number; name: string }>;
+  production_companies?: Array<{
+    id: number;
+    name: string;
+    logo_path: string | null;
+    origin_country: string;
+  }>;
+  production_countries?: Array<{
+    iso_3166_1: string;
+    name: string;
+  }>;
+  spoken_languages?: Array<{
+    iso_639_1: string;
+    name: string;
+  }>;
+  original_language?: string;
+  original_title?: string;
+  adult?: boolean;
+  video?: boolean;
+  release_dates?: {
+    results: Array<{
+      iso_3166_1: string;
+      release_dates: Array<{
+        certification: string;
+        release_date: string;
+        type: number;
+      }>;
+    }>;
+  };
+  credits?: {
+    cast: Array<{
+      id: number;
+      name: string;
+      character: string;
+      profile_path: string | null;
+      order: number;
+    }>;
+    crew: Array<{
+      id: number;
+      name: string;
+      job: string;
+      department: string;
+      profile_path: string | null;
+    }>;
+  };
+  videos?: {
+    results: Array<{
+      id: string;
+      key: string;
+      name: string;
+      site: string;
+      size: number;
+      type: string;
+      official: boolean;
+    }>;
+  };
+  images?: {
+    backdrops: Array<{
+      file_path: string;
+      width: number;
+      height: number;
+    }>;
+    posters: Array<{
+      file_path: string;
+      width: number;
+      height: number;
+    }>;
+  };
 }
 
 export interface TMDBResponse {

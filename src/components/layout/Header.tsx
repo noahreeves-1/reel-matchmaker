@@ -10,10 +10,10 @@ export const Header = () => {
             className="flex items-center hover:opacity-80 transition-opacity"
           >
             <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center mr-3">
-              <span className="text-white font-bold text-sm">RT</span>
+              <span className="text-white font-bold text-sm">RM</span>
             </div>
             <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-              ReelTaste
+              Reel Matchmaker
             </h1>
           </Link>
 

@@ -6,7 +6,7 @@ import { Providers } from "@/components/Providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ReelTaste - Movie Recommender",
+  title: "Reel Matchmaker - Movie Recommender",
   description:
     "Discover your next favorite movie with AI-powered recommendations",
 };

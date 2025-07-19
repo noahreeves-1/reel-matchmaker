@@ -36,8 +36,8 @@ export const useLocalStorage = <T>(key: string, initialValue: T) => {
 
 // Storage keys for the app
 export const STORAGE_KEYS = {
-  RATED_MOVIES: "reeltaste-rated-movies",
-  RECOMMENDATIONS: "reeltaste-recommendations",
+  RATED_MOVIES: "reel-matchmaker-rated-movies",
+  RECOMMENDATIONS: "reel-matchmaker-recommendations",
 } as const;
 
 // Utility functions for rated movies

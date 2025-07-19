@@ -5,7 +5,7 @@ import { getInitialMovies } from "@/hooks/server";
 
 // Static metadata for SEO
 export const metadata = {
-  title: "ReelTaste - AI Movie Recommendations",
+  title: "Reel Matchmaker - AI Movie Recommendations",
   description:
     "Discover your next favorite movie with AI-powered recommendations based on your taste",
   keywords: ["movies", "recommendations", "AI", "TMDB", "streaming"],

@@ -38,7 +38,7 @@ export const getInitialMovies = async (): Promise<TMDBResponse> => {
 };
 
 /**
- * Server-side function for fetching movie details
+ * Server-side function for fetching movie details with comprehensive data
  * Used in Server Components for SSR/ISR
  */
 export const getMovieData = async (
@@ -51,8 +51,9 @@ export const getMovieData = async (
       throw new Error("TMDB API key not configured");
     }
 
+    // Fetch comprehensive movie data including credits, videos, and images
     const response = await fetch(
-      `${TMDB_BASE_URL}/movie/${movieId}?api_key=${apiKey}&language=en-US`,
+      `${TMDB_BASE_URL}/movie/${movieId}?api_key=${apiKey}&language=en-US&append_to_response=credits,videos,images,release_dates`,
       {
         headers: {
           "Content-Type": "application/json",

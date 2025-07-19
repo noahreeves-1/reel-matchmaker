@@ -1,6 +1,11 @@
 export { MovieCard } from "./MovieCard";
+export { MovieCast } from "./MovieCast";
+export { MovieDetails } from "./MovieDetails";
 export { MovieGrid } from "./MovieGrid";
+export { MovieHero } from "./MovieHero";
 export { MovieApp } from "./MovieApp";
+export { MovieSidebar } from "./MovieSidebar";
+export { MovieTrailers } from "./MovieTrailers";
 export { MyMoviesPage } from "./MyMoviesPage";
 export { RatingModal } from "./RatingModal";
 export { RecommendationsSection } from "./RecommendationsSection";
