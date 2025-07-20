@@ -1,3 +1,15 @@
+// LOADING SKELETON COMPONENT: Placeholder UI during data loading
+// This component provides animated placeholder content while data is being fetched
+//
+// SCALING CONSIDERATIONS:
+// - TRADEOFFS: Static placeholders, no real content, limited customization
+// - VERCEL OPTIMIZATIONS: Static component, no server load, instant rendering
+// - SCALE BREAKERS: None - this is a simple static component
+// - FUTURE IMPROVEMENTS: Add more skeleton types, dynamic content hints
+//
+// CURRENT USAGE: Loading states, placeholder content, UX improvement
+// PERFORMANCE: CSS animations, no JavaScript overhead
+
 interface LoadingSkeletonProps {
   itemCount?: number;
   className?: string;

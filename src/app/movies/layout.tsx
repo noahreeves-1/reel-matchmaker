@@ -1,5 +1,10 @@
 import { Header, Footer } from "@/components/layout";
 
+/**
+ * Movies layout component
+ * Provides consistent layout structure for all movies pages
+ * Includes header, main content area, and footer
+ */
 export default function MoviesLayout({
   children,
 }: {

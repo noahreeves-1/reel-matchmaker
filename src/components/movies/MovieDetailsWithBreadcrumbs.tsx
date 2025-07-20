@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { MovieDetails } from "./MovieDetails";
 import { TMDBMovie } from "@/lib/tmdb";
 
@@ -18,7 +17,6 @@ export const MovieDetailsWithBreadcrumbs = ({
   movie,
 }: MovieDetailsWithBreadcrumbsProps) => {
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
-  const router = useRouter();
 
   useEffect(() => {
     // Try multiple methods to determine the previous page
@@ -29,7 +27,7 @@ export const MovieDetailsWithBreadcrumbs = ({
     console.log("SessionStorage previousPage:", previousPage);
 
     // Parse the referrer URL to determine the source
-    let breadcrumbItems: BreadcrumbItem[] = [{ label: "Home", href: "/" }];
+    const breadcrumbItems: BreadcrumbItem[] = [{ label: "Home", href: "/" }];
 
     // Use sessionStorage as primary source, fallback to referrer
     let sourcePath = previousPage;

@@ -1,3 +1,15 @@
+// TMDB API INTEGRATION: External movie data service
+// This file provides TypeScript interfaces and utility functions for The Movie Database API
+//
+// SCALING CONSIDERATIONS:
+// - TRADEOFFS: External dependency, rate limits (1000 requests/day), no control over data
+// - VERCEL OPTIMIZATIONS: Serverless functions for API calls, automatic scaling
+// - SCALE BREAKERS: TMDB rate limits, API downtime, data format changes
+// - FUTURE IMPROVEMENTS: Add Redis caching, request batching, fallback data sources
+//
+// CURRENT USAGE: Movie data, search, images, configuration
+// API LIMITS: 1000 requests/day (free tier), consider upgrading for production
+
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
 

@@ -1,5 +1,17 @@
 import Link from "next/link";
 
+// HEADER COMPONENT: Main navigation and branding
+// This component provides the top navigation bar with branding and links
+//
+// SCALING CONSIDERATIONS:
+// - TRADEOFFS: Static navigation, no user-specific content, limited personalization
+// - VERCEL OPTIMIZATIONS: Static component, CDN caching, instant loading
+// - SCALE BREAKERS: None - this is a simple static component
+// - FUTURE IMPROVEMENTS: Add user menu, notifications, dynamic navigation
+//
+// CURRENT USAGE: Main navigation, branding, page links
+// ARCHITECTURE: Static Component → No Server Load
+
 export const Header = () => {
   return (
     <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">

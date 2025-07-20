@@ -1,5 +1,17 @@
 import { TMDBResponse, TMDBMovie } from "@/lib/tmdb";
 
+// SERVER-SIDE DATA FETCHING: Direct TMDB API calls for Server Components
+// This file provides server-side functions for fetching movie data during build/request time
+//
+// SCALING CONSIDERATIONS:
+// - TRADEOFFS: Direct API calls, no caching, potential rate limiting
+// - VERCEL OPTIMIZATIONS: Serverless functions, automatic scaling, global distribution
+// - SCALE BREAKERS: TMDB rate limits, API downtime, cold starts
+// - FUTURE IMPROVEMENTS: Add Redis caching, request batching, fallback data
+//
+// CURRENT USAGE: ISR page generation, server-side rendering
+// ARCHITECTURE: Server Component → Direct TMDB API → Response
+
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
 /**

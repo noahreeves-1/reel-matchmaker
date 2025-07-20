@@ -1,7 +1,20 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { getPopularMovies, searchMovies } from "@/lib/api";
 import { TMDBResponse } from "@/lib/tmdb";
+import { CACHE_CONFIG } from "@/lib/constants";
 import { useState } from "react";
+
+// MOVIE QUERY HOOKS: React Query integration for movie data fetching
+// This file provides hooks for fetching popular movies and search results with caching
+//
+// SCALING CONSIDERATIONS:
+// - TRADEOFFS: Client-side caching vs. memory usage, stale data vs. fresh data
+// - VERCEL OPTIMIZATIONS: React Query caching, background refetching, optimistic updates
+// - SCALE BREAKERS: Large cache sizes, memory leaks, stale cache invalidation
+// - FUTURE IMPROVEMENTS: Add server-side caching, cache persistence, prefetching
+//
+// CURRENT USAGE: Movie data fetching, search functionality, infinite pagination
+// PERFORMANCE: Intelligent caching, background updates, memory management
 
 /**
  * Hook for fetching popular movies with infinite pagination
@@ -19,8 +32,8 @@ export const usePopularMovies = (initialData?: TMDBResponse) => {
           pageParams: [1],
         }
       : undefined,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 30, // 30 minutes
+    staleTime: CACHE_CONFIG.MOVIES_STALE_TIME,
+    gcTime: CACHE_CONFIG.MOVIES_GC_TIME,
   });
 };
 
@@ -35,8 +48,8 @@ export const useMovieSearch = (searchTerm: string) => {
       lastPage.page < lastPage.total_pages ? lastPage.page + 1 : undefined,
     initialPageParam: 1,
     enabled: !!searchTerm.trim(),
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 30, // 30 minutes
+    staleTime: CACHE_CONFIG.MOVIES_STALE_TIME,
+    gcTime: CACHE_CONFIG.MOVIES_GC_TIME,
   });
 };
 

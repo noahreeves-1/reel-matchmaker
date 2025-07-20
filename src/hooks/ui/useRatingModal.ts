@@ -1,35 +1,33 @@
 import { useState } from "react";
-import { TMDBMovie } from "@/lib/tmdb";
 
-/**
- * Hook for managing the rating modal state
- */
+// RATING MODAL HOOK: Simple state management for rating modal
+// This hook manages the open/close state and rating value for the movie rating modal
 export const useRatingModal = () => {
-  const [ratingModal, setRatingModal] = useState<{
-    isOpen: boolean;
-    movie: TMDBMovie | null;
-  }>({
-    isOpen: false,
-    movie: null,
-  });
+  const [isOpen, setIsOpen] = useState(false);
+  const [rating, setRating] = useState<number | null>(null);
+  const [movieId, setMovieId] = useState<number | null>(null);
 
-  const openRatingModal = (movie: TMDBMovie) => {
-    setRatingModal({
-      isOpen: true,
-      movie,
-    });
+  const openModal = (id: number) => {
+    setMovieId(id);
+    setIsOpen(true);
   };
 
-  const closeRatingModal = () => {
-    setRatingModal({
-      isOpen: false,
-      movie: null,
-    });
+  const closeModal = () => {
+    setIsOpen(false);
+    setRating(null);
+    setMovieId(null);
+  };
+
+  const handleRatingChange = (newRating: number) => {
+    setRating(newRating);
   };
 
   return {
-    ratingModal,
-    openRatingModal,
-    closeRatingModal,
+    isOpen,
+    rating,
+    movieId,
+    openModal,
+    closeModal,
+    handleRatingChange,
   };
 };

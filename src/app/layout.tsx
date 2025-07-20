@@ -3,14 +3,30 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 
+// Next.js Font Optimization: Inter font is optimized and self-hosted
+// This improves performance by avoiding external font requests
 const inter = Inter({ subsets: ["latin"] });
 
+// Static Metadata: This metadata is applied to ALL pages in the app
+// It serves as the default metadata that can be overridden by individual pages
 export const metadata: Metadata = {
   title: "Reel Matchmaker - Movie Recommender",
   description:
     "Discover your next favorite movie with AI-powered recommendations",
 };
 
+// RENDERING STRATEGY: Static Site Generation (SSG)
+// - This layout is generated at build time and reused across all pages
+// - No revalidation needed - layout structure doesn't change
+// - Benefits: Fastest possible loading, excellent SEO, minimal server load
+// - Perfect for: Layout structure that's the same for all pages
+// - Why SSG? The layout (HTML structure, providers) doesn't change between requests
+//
+// SCALING CONSIDERATIONS:
+// - TRADEOFFS: No dynamic content, limited personalization, static structure
+// - VERCEL OPTIMIZATIONS: Global CDN caching, global distribution, instant loading
+// - SCALE BREAKERS: None - this is the most scalable approach
+// - FUTURE IMPROVEMENTS: Add user-specific header content, dynamic navigation
 export default function RootLayout({
   children,
 }: {
@@ -19,6 +35,8 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={inter.className}>
+        {/* Providers: Client-side providers (React Query, etc.) must be in a separate component */}
+        {/* This is because Server Components can't use hooks or browser APIs */}
         <Providers>{children}</Providers>
       </body>
     </html>

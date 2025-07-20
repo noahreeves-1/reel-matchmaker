@@ -68,6 +68,24 @@ Hooks for managing user-specific data and interactions.
   - Rating removal with confirmation dialog
   - Automatic cache invalidation
 
+### `useRecommendations`
+
+- **Purpose**: Manage AI-powered movie recommendations
+- **Features**:
+  - Recommendation generation with error handling
+  - Loading state management
+  - Integration with rated movies and want-to-watch list
+  - Proper error handling with custom error types
+
+### `useMovieActions`
+
+- **Purpose**: Manage movie rating and want-to-watch actions
+- **Features**:
+  - Rate movies with local storage persistence
+  - Toggle want-to-watch status
+  - Get current rating for a movie
+  - Check if movie is in want-to-watch list
+
 ## UI Hooks (`/ui`)
 
 Hooks for managing UI state and interactions.

@@ -34,7 +34,13 @@ export async function GET(
 
     const url = `${TMDB_BASE_URL}/movie/${movieId}?api_key=${apiKey}&language=en-US`;
 
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      // Add Next.js caching - cache for 24 hours
+      next: {
+        revalidate: 60 * 60 * 24, // 24 hours
+        tags: [`movie-${movieId}`], // Tag for cache invalidation
+      },
+    });
 
     if (!response.ok) {
       throw new Error(
@@ -43,7 +49,14 @@ export async function GET(
     }
 
     const movie = await response.json();
-    return NextResponse.json(movie);
+
+    // Return with caching headers
+    return NextResponse.json(movie, {
+      headers: {
+        "Cache-Control":
+          "public, s-maxage=86400, stale-while-revalidate=604800", // 24 hours + 7 days stale
+      },
+    });
   } catch (error) {
     console.error("Error fetching movie details:", error);
     return NextResponse.json(

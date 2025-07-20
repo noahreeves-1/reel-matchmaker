@@ -3,6 +3,18 @@ import { getRatedMovies, removeRating } from "@/lib/localStorage";
 import { RatedMovie } from "@/types/movie";
 import { useMovieDetailsBatch } from "../queries/useMovieDetails";
 
+// RATED MOVIES HOOK: User rating management with localStorage integration
+// This hook manages user's rated movies with localStorage persistence and movie details
+//
+// SCALING CONSIDERATIONS:
+// - TRADEOFFS: localStorage dependency, no server persistence, limited storage
+// - VERCEL OPTIMIZATIONS: Client-side only, no server load, instant access
+// - SCALE BREAKERS: localStorage size limits, no cross-device sync, data loss risk
+// - FUTURE IMPROVEMENTS: Add PostgreSQL persistence, user authentication, cloud sync
+//
+// CURRENT USAGE: User rating management, movie details fetching, confirmation dialogs
+// ARCHITECTURE: localStorage → React Query → Movie Details → UI Updates
+
 /**
  * Hook for managing user's rated movies
  */

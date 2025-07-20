@@ -30,7 +30,9 @@ export const MovieSidebar = ({ movie }: MovieSidebarProps) => {
         {/* Quick Stats */}
         <div className="mt-6 space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-slate-600 dark:text-slate-400">Rating</span>
+            <span className="text-slate-600 dark:text-slate-400">
+              TMDB Rating
+            </span>
             <div className="flex items-center gap-2">
               <span className="text-yellow-500">⭐</span>
               <span className="font-semibold">

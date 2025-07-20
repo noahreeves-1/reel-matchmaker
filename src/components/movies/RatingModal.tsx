@@ -1,13 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { TMDBMovie } from "@/lib/tmdb";
+import Image from "next/image";
+
+type RatingModalMovie = {
+  id: number;
+  title: string;
+  poster_path?: string | null;
+  release_date?: string;
+  overview?: string;
+};
 
 interface RatingModalProps {
-  movie: TMDBMovie;
+  movie: RatingModalMovie;
   isOpen: boolean;
   onClose: () => void;
-  onRate: (movieId: number, rating: number) => void;
+  onRate: (movie: RatingModalMovie, rating: number) => void;
   currentRating?: number;
 }
 
@@ -23,11 +31,11 @@ export const RatingModal = ({
 
   if (!isOpen) return null;
 
-  const handleRate = () => {
-    if (rating > 0) {
-      onRate(movie.id, rating);
-      onClose();
-    }
+  const handleStarClick = (starRating: number) => {
+    setRating(starRating);
+    // Automatically save and close the modal when a star is clicked
+    onRate(movie, starRating);
+    onClose();
   };
 
   const handleClose = () => {
@@ -53,11 +61,15 @@ export const RatingModal = ({
       <div className="bg-white dark:bg-slate-800 rounded-xl max-w-md w-full p-6">
         <div className="flex items-start space-x-4 mb-6">
           {posterUrl ? (
-            <img
-              src={posterUrl}
-              alt={movie.title}
-              className="w-20 h-30 object-cover rounded-lg"
-            />
+            <div className="relative w-20 h-30">
+              <Image
+                src={posterUrl}
+                alt={movie.title}
+                fill
+                className="object-cover rounded-lg"
+                sizes="80px"
+              />
+            </div>
           ) : (
             <div className="w-20 h-30 bg-slate-200 dark:bg-slate-700 rounded-lg flex items-center justify-center">
               <span className="text-xs text-slate-500">No Poster</span>
@@ -88,7 +100,7 @@ export const RatingModal = ({
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
               <button
                 key={star}
-                onClick={() => setRating(star)}
+                onClick={() => handleStarClick(star)}
                 onMouseEnter={() => setHoverRating(star)}
                 onMouseLeave={() => setHoverRating(0)}
                 className="text-2xl transition-colors duration-200"
@@ -109,23 +121,20 @@ export const RatingModal = ({
           </div>
 
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            {rating > 0 ? `You rated this ${rating}/10` : "Select a rating"}
+            {hoverRating > 0
+              ? `Rating: ${hoverRating}/10`
+              : rating > 0
+              ? `You rated this ${rating}/10`
+              : "Select a rating"}
           </p>
         </div>
 
-        <div className="flex space-x-3">
+        <div className="flex justify-center">
           <button
             onClick={handleClose}
-            className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            className="px-6 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           >
             Close
-          </button>
-          <button
-            onClick={handleRate}
-            disabled={rating === 0}
-            className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {currentRating ? "Update Rating" : "Rate Movie"}
           </button>
         </div>
       </div>

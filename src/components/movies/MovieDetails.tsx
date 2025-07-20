@@ -146,7 +146,7 @@ export const MovieDetails = ({ movie, breadcrumbs }: MovieDetailsProps) => {
                       </h3>
                       <p className="text-slate-700 dark:text-slate-300">
                         {getDirectors(movie)
-                          .map((director) => director.name)
+                          .map((director: { name: string }) => director.name)
                           .join(", ")}
                       </p>
                     </div>
@@ -158,7 +158,7 @@ export const MovieDetails = ({ movie, breadcrumbs }: MovieDetailsProps) => {
                       </h3>
                       <p className="text-slate-700 dark:text-slate-300">
                         {getWriters(movie)
-                          .map((writer) => writer.name)
+                          .map((writer: { name: string }) => writer.name)
                           .join(", ")}
                       </p>
                     </div>

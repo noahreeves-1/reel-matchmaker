@@ -38,7 +38,7 @@ Reel Matchmaker is a lightweight movie recommendation web app. Users rate movies
 - Method: POST
 - Input: List of rated movie titles + optional genres
 - Output: 3 recommended movie titles + reasons
-- Runtime: Edge Function (AI Gateway or custom fetch)
+- Runtime: Edge Function (Vercel AI SDK with OpenAI)
 
 2. /api/tmdb-proxy
 
@@ -84,15 +84,15 @@ Reel Matchmaker is a lightweight movie recommendation web app. Users rate movies
 
 <!-- Day 1 -->
 
-- [ ] Setup Next.js project with Tailwind and Shadcn
-- [ ] Implement SSR route for homepage to fetch TMDB popular movies
-- [ ] Save rated movies to localStorage
-- [ ] Add \"Generate Recommendations\" UI and hook
+- [x] Setup Next.js project with Tailwind and Shadcn
+- [x] Implement SSR route for homepage to fetch TMDB popular movies
+- [x] Save rated movies to localStorage
+- [x] Add \"Generate Recommendations\" UI and hook
 
 <!-- Day 2 -->
 
-- [ ] Create Edge Function endpoint for AI recommendations
-- [ ] Build movie detail pages with ISR
-- [ ] Add loading/skeleton states and error fallback
-- [ ] Add minimal styling + attribution footer
+- [x] Create Edge Function endpoint for AI recommendations
+- [x] Build movie detail pages with ISR
+- [x] Add loading/skeleton states and error fallback
+- [x] Add minimal styling + attribution footer
 - [ ] Final Vercel deployment and polish

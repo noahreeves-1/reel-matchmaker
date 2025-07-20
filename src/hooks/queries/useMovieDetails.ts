@@ -2,13 +2,28 @@ import { useQuery } from "@tanstack/react-query";
 import { getMovieDetails } from "@/lib/api";
 import { TMDBMovie } from "@/lib/tmdb";
 
+// MOVIE DETAILS QUERY HOOKS: Individual and batch movie detail fetching
+// This file provides hooks for fetching detailed movie information with caching
+//
+// SCALING CONSIDERATIONS:
+// - TRADEOFFS: Individual requests vs. batch requests, cache size vs. performance
+// - VERCEL OPTIMIZATIONS: React Query deduplication, intelligent caching, background updates
+// - SCALE BREAKERS: Many concurrent requests, large cache sizes, API rate limits
+// - FUTURE IMPROVEMENTS: Add request batching, cache persistence, prefetching
+//
+// CURRENT USAGE: Movie detail pages, user movie lists, recommendation display
+// PERFORMANCE: Long cache times (24h), batch processing, memory-efficient storage
+
 /**
  * Hook for fetching a single movie's details
  */
 export const useMovieDetails = (movieId: number | null) => {
   return useQuery({
     queryKey: ["movie", "details", movieId],
-    queryFn: () => getMovieDetails(movieId!),
+    queryFn: () => {
+      console.log(`🎬 Fetching movie details for ID: ${movieId}`);
+      return getMovieDetails(movieId!);
+    },
     enabled: !!movieId,
     staleTime: 1000 * 60 * 60 * 24, // 24 hours
     gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days
@@ -17,24 +32,65 @@ export const useMovieDetails = (movieId: number | null) => {
 
 /**
  * Hook for fetching multiple movies' details in batch
+ * Optimized to handle large batches efficiently
  */
 export const useMovieDetailsBatch = (movieIds: number[]) => {
   return useQuery({
     queryKey: ["movies", "details", movieIds],
     queryFn: async () => {
-      const moviePromises = movieIds.map((id) => getMovieDetails(id));
-      const movies = await Promise.all(moviePromises);
+      console.log(`🎬 Batch fetching movie details for IDs:`, movieIds);
 
-      // Return as a map for easy lookup
-      const movieMap: Record<number, TMDBMovie> = {};
-      movieIds.forEach((id, index) => {
-        movieMap[id] = movies[index];
+      // Filter out any invalid IDs
+      const validIds = movieIds.filter((id) => id && !isNaN(id));
+
+      if (validIds.length === 0) {
+        console.log(`🎬 No valid movie IDs to fetch`);
+        return {};
+      }
+
+      // Use Promise.allSettled to handle partial failures gracefully
+      const moviePromises = validIds.map(async (id) => {
+        try {
+          const movie = await getMovieDetails(id);
+          console.log(`✅ Successfully fetched movie ${id}: ${movie.title}`);
+          return { id, movie, success: true };
+        } catch (error) {
+          console.warn(`❌ Failed to fetch movie ${id}:`, error);
+          return { id, movie: null, success: false };
+        }
       });
 
+      const results = await Promise.allSettled(moviePromises);
+
+      // Build the movie map, filtering out failed requests
+      const movieMap: Record<number, TMDBMovie> = {};
+      results.forEach((result) => {
+        if (
+          result.status === "fulfilled" &&
+          result.value.success &&
+          result.value.movie
+        ) {
+          movieMap[result.value.id] = result.value.movie;
+        }
+      });
+
+      console.log(
+        `🎬 Batch fetch complete. Successfully fetched ${
+          Object.keys(movieMap).length
+        }/${validIds.length} movies`
+      );
       return movieMap;
     },
     enabled: movieIds.length > 0,
     staleTime: 1000 * 60 * 60 * 24, // 24 hours
     gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days
+    // Add retry logic for failed requests
+    retry: (failureCount, _error) => {
+      // Only retry up to 2 times for network errors
+      if (failureCount < 2) {
+        return true;
+      }
+      return false;
+    },
   });
 };

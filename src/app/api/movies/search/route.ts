@@ -41,6 +41,11 @@ export async function GET(request: NextRequest) {
         headers: {
           "Content-Type": "application/json",
         },
+        // Add Next.js caching - cache for 30 minutes (search results can change)
+        next: {
+          revalidate: 60 * 30, // 30 minutes
+          tags: [`search-${encodedQuery}-page-${page}`], // Tag for cache invalidation
+        },
       }
     );
 
@@ -52,7 +57,11 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json();
 
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: {
+        "Cache-Control": "public, s-maxage=1800, stale-while-revalidate=3600", // 30 minutes + 1 hour stale
+      },
+    });
   } catch (error) {
     console.error("Failed to search movies:", error);
 

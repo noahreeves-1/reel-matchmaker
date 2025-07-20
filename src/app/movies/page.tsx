@@ -1,10 +1,24 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { MovieGrid } from "@/components/movies";
-import { LoadingSkeleton } from "@/components/common";
+import {
+  LoadingSkeleton,
+  Breadcrumb,
+  PageHeader,
+  PageContainer,
+} from "@/components/common";
 import { getInitialMovies } from "@/hooks/server";
 
-// ISR with 1 hour revalidation
+// RENDERING STRATEGY: ISR (Incremental Static Regeneration)
+// - This page is statically generated at build time for maximum performance
+// - It's regenerated every hour to keep popular movies list fresh
+// - Benefits: Fast loading, good SEO, reduced API calls
+// - Perfect for: Popular movies list that changes daily but not hourly
+//
+// SCALING CONSIDERATIONS:
+// - TRADEOFFS: 1-hour stale data, no personalization, limited filtering options
+// - VERCEL OPTIMIZATIONS: Global CDN caching, automatic scaling, serverless functions
+// - SCALE BREAKERS: High traffic during revalidation, TMDB rate limits
+// - FUTURE IMPROVEMENTS: Add user preferences, advanced filtering, real-time trending
 export const revalidate = 3600;
 
 // Generate metadata for SEO
@@ -14,47 +28,30 @@ export const metadata = {
   keywords: ["movies", "popular", "trending", "TMDB", "streaming"],
 };
 
+/**
+ * Movies page component
+ * Displays popular movies with ISR for optimal performance
+ */
 export default async function MoviesPage() {
   const movies = await getInitialMovies();
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Breadcrumb Navigation */}
-      <nav className="mb-6">
-        <ol className="flex items-center space-x-2 text-sm text-slate-600 dark:text-slate-400">
-          <li>
-            <Link
-              href="/"
-              className="hover:text-slate-900 dark:hover:text-white transition-colors"
-            >
-              Home
-            </Link>
-          </li>
-          <li>
-            <span className="text-slate-400">/</span>
-          </li>
-          <li className="text-slate-900 dark:text-white font-medium">
-            Popular Movies
-          </li>
-        </ol>
-      </nav>
+  const breadcrumbItems = [
+    { label: "Home", href: "/" },
+    { label: "Popular Movies" },
+  ];
 
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-2">
-          Popular Movies
-        </h1>
-        <p className="text-slate-600 dark:text-slate-400">
-          Discover the most popular movies trending right now
-        </p>
-      </div>
+  return (
+    <PageContainer>
+      <Breadcrumb items={breadcrumbItems} />
+
+      <PageHeader
+        title="Popular Movies"
+        description="Discover the most popular movies trending right now"
+      />
 
       <Suspense fallback={<LoadingSkeleton />}>
-        <MovieGrid
-          movies={movies.results}
-          isLoading={false}
-          hasMoreMovies={movies.page < movies.total_pages}
-        />
+        <MovieGrid movies={movies.results} isLoading={false} />
       </Suspense>
-    </div>
+    </PageContainer>
   );
 }

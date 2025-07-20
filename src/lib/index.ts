@@ -11,3 +11,5 @@ export {
 } from "./tmdb";
 export { getPopularMovies, getMovieDetails } from "./api";
 export { STORAGE_KEYS } from "./localStorage";
+export * from "./errorHandling";
+export * from "./constants";
