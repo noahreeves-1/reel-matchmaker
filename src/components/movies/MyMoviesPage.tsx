@@ -8,11 +8,13 @@ import {
   MovieCard,
   LoadingSkeleton,
   ConfirmDialog,
+  RatingModal,
 } from "@/components/movies";
 import { useRatedMovies } from "@/hooks";
 import { useLocalStorage, STORAGE_KEYS } from "@/lib";
 import { WantToWatchMovie } from "@/types/movie";
 import { TMDBMovie } from "@/lib/tmdb";
+import { useMovieActions } from "@/hooks/user/useMovieActions";
 
 // MY MOVIES PAGE: User's personal movie collection management
 // This component displays and manages user's rated movies and want-to-watch list
@@ -25,6 +27,15 @@ export const MyMoviesPage = () => {
   // Add client-side only state to prevent hydration mismatches
   const [isClient, setIsClient] = useState(false);
 
+  // Rating modal state
+  const [ratingModal, setRatingModal] = useState<{
+    isOpen: boolean;
+    movie: TMDBMovie | null;
+  }>({
+    isOpen: false,
+    movie: null,
+  });
+
   const {
     ratedMovies,
     movieDetails,
@@ -34,7 +45,11 @@ export const MyMoviesPage = () => {
     openConfirmDialog,
     closeConfirmDialog,
     handleRemoveRating,
+    loadRatedMovies,
   } = useRatedMovies();
+
+  // Use the same movie actions hook as the main app for consistent behavior
+  const { rateMovie } = useMovieActions();
 
   // Set client flag after hydration
   useEffect(() => {
@@ -66,6 +81,61 @@ export const MyMoviesPage = () => {
         wantToWatchMovie,
       ]);
     }
+  };
+
+  // Rating functionality
+  const handleOpenRatingModal = (movie: TMDBMovie) => {
+    setRatingModal({
+      isOpen: true,
+      movie,
+    });
+  };
+
+  const handleCloseRatingModal = () => {
+    setRatingModal({
+      isOpen: false,
+      movie: null,
+    });
+  };
+
+  const handleRateMovie = (
+    movie: {
+      id: number;
+      title: string;
+      poster_path?: string | null;
+      release_date?: string;
+      overview?: string;
+    },
+    rating: number
+  ) => {
+    // Convert to TMDBMovie format for the rateMovie function
+    const tmdbMovie: TMDBMovie = {
+      id: movie.id,
+      title: movie.title,
+      poster_path: movie.poster_path || null,
+      backdrop_path: null,
+      release_date: movie.release_date || "",
+      overview: movie.overview || "",
+      vote_average: 0,
+      vote_count: 0,
+      genre_ids: [],
+      popularity: 0,
+    };
+
+    // Use the same rateMovie function as the main app
+    // This automatically handles localStorage updates and want-to-watch removal
+    rateMovie(tmdbMovie, rating);
+
+    // Close the modal
+    handleCloseRatingModal();
+
+    // Refresh the rated movies data to reflect the changes
+    // This ensures the UI updates immediately without a page reload
+    loadRatedMovies();
+
+    // Update the want-to-watch list state to remove the rated movie
+    const updatedWantToWatch = wantToWatchList.filter((m) => m.id !== movie.id);
+    setWantToWatchList(updatedWantToWatch);
   };
 
   // Show loading state until client-side hydration is complete
@@ -188,7 +258,9 @@ export const MyMoviesPage = () => {
                           isLoading={false}
                           movie={movieDetail}
                           userRating={ratedMovie.rating}
-                          onOpenRatingModal={() => {}} // No-op since we're just displaying
+                          onOpenRatingModal={() =>
+                            handleOpenRatingModal(movieDetail)
+                          }
                         />
                       ) : (
                         <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
@@ -268,7 +340,9 @@ export const MyMoviesPage = () => {
                         movie={movieDetail}
                         isInWantToWatch={true}
                         onToggleWantToWatch={handleToggleWantToWatch}
-                        onOpenRatingModal={() => {}} // No-op since we're just displaying
+                        onOpenRatingModal={() =>
+                          handleOpenRatingModal(movieDetail)
+                        }
                       />
                     </div>
                   );
@@ -291,6 +365,19 @@ export const MyMoviesPage = () => {
         confirmText="Remove"
         cancelText="Cancel"
       />
+
+      {/* Rating Modal */}
+      {ratingModal.movie && (
+        <RatingModal
+          movie={ratingModal.movie}
+          isOpen={ratingModal.isOpen}
+          onClose={handleCloseRatingModal}
+          onRate={handleRateMovie}
+          currentRating={
+            ratedMovies.find((rm) => rm.id === ratingModal.movie!.id)?.rating
+          }
+        />
+      )}
     </div>
   );
 };

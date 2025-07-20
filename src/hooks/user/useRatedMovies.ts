@@ -14,6 +14,9 @@ import { useMovieDetailsBatch } from "../queries/useMovieDetails";
 //
 // CURRENT USAGE: User rating management, movie details fetching, confirmation dialogs
 // ARCHITECTURE: localStorage → React Query → Movie Details → UI Updates
+//
+// PERFORMANCE: Uses batch queries with stable keys to prevent unnecessary refetches
+// The query key uses a hash of sorted IDs for consistent caching
 
 /**
  * Hook for managing user's rated movies
@@ -79,5 +82,6 @@ export const useRatedMovies = () => {
     openConfirmDialog,
     closeConfirmDialog,
     handleRemoveRating,
+    loadRatedMovies, // Export this so components can refresh the data
   };
 };

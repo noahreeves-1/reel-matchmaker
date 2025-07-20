@@ -35,8 +35,12 @@ export const useMovieDetails = (movieId: number | null) => {
  * Optimized to handle large batches efficiently
  */
 export const useMovieDetailsBatch = (movieIds: number[]) => {
+  // Create a stable query key that doesn't change when order changes
+  const sortedIds = [...movieIds].sort();
+  const idsHash = sortedIds.join(",");
+
   return useQuery({
-    queryKey: ["movies", "details", movieIds],
+    queryKey: ["movies", "details", idsHash],
     queryFn: async () => {
       console.log(`🎬 Batch fetching movie details for IDs:`, movieIds);
 

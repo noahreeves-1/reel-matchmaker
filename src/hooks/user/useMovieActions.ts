@@ -33,10 +33,22 @@ export const useMovieActions = () => {
       // Add new rating
       setRatedMovies([...ratedMovies, newRatedMovie]);
     }
+
+    // Remove from want-to-watch list if it was there
+    // This ensures that once a user rates a movie, it's considered "watched"
+    // and should be removed from their want-to-watch list
+    const isInWantToWatch = wantToWatchList.some((m) => m.id === movie.id);
+    if (isInWantToWatch) {
+      setWantToWatchList(wantToWatchList.filter((m) => m.id !== movie.id));
+    }
   };
 
   const removeRating = (movieId: number) => {
     setRatedMovies(ratedMovies.filter((m) => m.id !== movieId));
+
+    // Note: We don't automatically add back to want-to-watch list when removing a rating
+    // This is a design decision - if a user removes their rating, they might want to
+    // re-evaluate the movie, but we don't assume they want to watch it again
   };
 
   const getRating = (movieId: number): number | null => {
