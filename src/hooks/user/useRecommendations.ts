@@ -60,7 +60,7 @@ export const useRecommendations = () => {
       }
 
       const data = await response.json();
-      setRecommendations(data.recommendations);
+      setRecommendations(data);
     } catch (error) {
       // Error Propagation: Re-throw errors to be handled by the component
       // This allows components to show user-friendly error messages

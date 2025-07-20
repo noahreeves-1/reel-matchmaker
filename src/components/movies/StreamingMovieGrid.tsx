@@ -9,35 +9,29 @@ import { RatedMovie } from "@/types/movie";
 interface StreamingMovieGridProps {
   initialMovies?: TMDBMovie[];
   ratedMovies?: RatedMovie[];
-  onRateMovie?: (movieId: number, rating: number) => void;
-  onOpenRatingModal?: (movie: TMDBMovie) => void;
-  onLoadMore?: () => void;
-  hasMoreMovies?: boolean;
-  isLoadingMore?: boolean;
-  searchQuery?: string;
+  // onRateMovie?: (movieId: number, rating: number) => void; // Unused - keeping for future use
+  onOpenRatingModal?: (movieId: number) => void;
+  // onLoadMore?: () => void; // Unused - keeping for future use
+  // hasMoreMovies?: boolean; // Unused - keeping for future use
+  // isLoadingMore?: boolean; // Unused - keeping for future use
+  // searchQuery?: string; // Unused - keeping for future use
 }
 
 export const StreamingMovieGrid = ({
   initialMovies,
   ratedMovies,
-  onRateMovie,
   onOpenRatingModal,
-  onLoadMore,
-  hasMoreMovies,
-  isLoadingMore,
-  searchQuery,
 }: StreamingMovieGridProps) => {
   return (
     <Suspense fallback={<LoadingSkeleton />}>
       <MovieGrid
         movies={initialMovies || []}
-        ratedMovies={ratedMovies || []}
-        onRateMovie={onRateMovie}
+        userRatings={Object.fromEntries(
+          (ratedMovies || []).map((movie) => [movie.id, movie.rating])
+        )}
+        wantToWatchList={[]}
         onOpenRatingModal={onOpenRatingModal}
-        onLoadMore={onLoadMore}
-        hasMoreMovies={hasMoreMovies}
-        isLoadingMore={isLoadingMore}
-        searchQuery={searchQuery}
+        onToggleWantToWatch={undefined}
       />
     </Suspense>
   );

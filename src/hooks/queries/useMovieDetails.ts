@@ -89,7 +89,7 @@ export const useMovieDetailsBatch = (movieIds: number[]) => {
     staleTime: 1000 * 60 * 60 * 24, // 24 hours
     gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days
     // Add retry logic for failed requests
-    retry: (failureCount, _error) => {
+    retry: (failureCount) => {
       // Only retry up to 2 times for network errors
       if (failureCount < 2) {
         return true;

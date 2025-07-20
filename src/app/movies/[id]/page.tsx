@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { MovieDetailsWithBreadcrumbs } from "@/components/movies";
 import { getMovieData } from "@/hooks/server";
-import { API_CONFIG, CACHE_CONFIG } from "@/lib/constants";
+import { API_CONFIG } from "@/lib/constants";
 
 // RENDERING STRATEGY: ISR (Incremental Static Regeneration)
 // - This page is statically generated at build time for maximum performance
@@ -15,7 +15,7 @@ import { API_CONFIG, CACHE_CONFIG } from "@/lib/constants";
 // - VERCEL OPTIMIZATIONS: Per-page caching, automatic CDN distribution, serverless functions
 // - SCALE BREAKERS: Popular movies causing frequent revalidations, TMDB rate limits
 // - FUTURE IMPROVEMENTS: Add user ratings overlay, real-time popularity updates
-export const revalidate = CACHE_CONFIG.MOVIES_STALE_TIME / 1000; // Convert to seconds
+export const revalidate = 300; // 5 minutes in seconds
 
 /**
  * Validates movie ID and fetches movie data

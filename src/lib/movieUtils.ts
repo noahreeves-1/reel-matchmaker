@@ -86,7 +86,9 @@ export const formatCurrency = (amount: number): string => {
 /**
  * Get directors from movie credits
  */
-export const getDirectors = (movie: any): Array<{ name: string }> => {
+export const getDirectors = (movie: {
+  credits?: { crew?: Array<{ job: string; name: string }> };
+}): Array<{ name: string }> => {
   if (!movie.credits?.crew) return [];
 
   return movie.credits.crew
@@ -99,7 +101,9 @@ export const getDirectors = (movie: any): Array<{ name: string }> => {
 /**
  * Get writers from movie credits
  */
-export const getWriters = (movie: any): Array<{ name: string }> => {
+export const getWriters = (movie: {
+  credits?: { crew?: Array<{ job: string; name: string }> };
+}): Array<{ name: string }> => {
   if (!movie.credits?.crew) return [];
 
   return movie.credits.crew
@@ -115,9 +119,16 @@ export const getWriters = (movie: any): Array<{ name: string }> => {
 /**
  * Get top cast members from movie credits (first 8 cast members)
  */
-export const getTopCast = (
-  movie: any
-): Array<{
+export const getTopCast = (movie: {
+  credits?: {
+    cast?: Array<{
+      id: number;
+      name: string;
+      character: string;
+      profile_path: string | null;
+    }>;
+  };
+}): Array<{
   id: number;
   name: string;
   character: string;
@@ -145,9 +156,18 @@ export const getTopCast = (
 /**
  * Get trailer videos from movie data
  */
-export const getTrailers = (
-  movie: any
-): Array<{
+export const getTrailers = (movie: {
+  videos?: {
+    results?: Array<{
+      id: string;
+      key: string;
+      name: string;
+      official: boolean;
+      type: string;
+      site: string;
+    }>;
+  };
+}): Array<{
   id: string;
   key: string;
   name: string;

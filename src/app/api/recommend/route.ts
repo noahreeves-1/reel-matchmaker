@@ -34,11 +34,11 @@ interface Recommendation extends TMDBMovie {
   enhancedReason?: string;
 }
 
-// Extended RatedMovie interface for API usage
-interface ExtendedRatedMovie extends RatedMovie {
-  title: string;
-  release_date?: string;
-}
+// Extended RatedMovie interface for API usage (unused - keeping for future use)
+// interface ExtendedRatedMovie extends RatedMovie {
+//   title: string;
+//   release_date?: string;
+// }
 
 const getApiKey = (): string => {
   const apiKey = process.env.TMDB_API_KEY || "";
@@ -149,8 +149,8 @@ async function searchMovieByTitle(
 
 // Function to calculate match score and level based on user preferences
 function calculateMatchScore(
-  movie: TMDBMovie,
-  _ratedMovies: RatedMovie[]
+  movie: TMDBMovie
+  // _ratedMovies: RatedMovie[] // Unused parameter - keeping for future enhancement
 ): { score: number; level: "LOVE IT" | "LIKE IT" | "MAYBE" | "RISKY" } {
   // Simple scoring algorithm - can be enhanced later
   let score = 50; // Base score
@@ -198,9 +198,9 @@ interface AIRecommendation {
 // Function to create enhanced reason with social proof
 function createEnhancedReason(
   movie: TMDBMovie & { personalizedReason?: string },
-  matchLevel: string,
-  _matchScore: number,
-  _ratedMovies: RatedMovie[]
+  matchLevel: string
+  // _matchScore: number, // Unused parameter - keeping for future enhancement
+  // _ratedMovies: RatedMovie[] // Unused parameter - keeping for future enhancement
 ): string {
   const voteCount = movie.vote_count
     ? `${(movie.vote_count / 1000).toFixed(0)}K+`
@@ -459,15 +459,10 @@ Make the personalizedReason informative and engaging. Include: 1) A brief plot s
         }
 
         // Calculate match score and level
-        const { score, level } = calculateMatchScore(movieDetails, ratedMovies);
+        const { score, level } = calculateMatchScore(movieDetails);
 
         // Create enhanced reason with social proof
-        const enhancedReason = createEnhancedReason(
-          movieDetails,
-          level,
-          score,
-          ratedMovies
-        );
+        const enhancedReason = createEnhancedReason(movieDetails, level);
 
         recommendations.push({
           ...movieDetails,

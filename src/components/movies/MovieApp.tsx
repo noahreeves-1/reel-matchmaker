@@ -63,9 +63,9 @@ export const MovieApp = ({ initialMovies }: MovieAppProps) => {
     movies,
     isLoadingMovies,
     movieError,
-    hasMoreMovies,
-    isLoadingMore,
-    loadMoreMovies,
+    // hasMoreMovies, // Unused - keeping for future pagination feature
+    // isLoadingMore, // Unused - keeping for future pagination feature
+    // loadMoreMovies, // Unused - keeping for future pagination feature
     refetch,
     searchQuery,
     isSearching,
@@ -113,8 +113,8 @@ export const MovieApp = ({ initialMovies }: MovieAppProps) => {
   };
 
   const handleToggleWantToWatch = (
-    movie: TMDBMovie,
-    isInWantToWatch: boolean
+    movie: TMDBMovie
+    // isInWantToWatch: boolean // Unused parameter - keeping for future use
   ) => {
     toggleWantToWatch(movie);
   };
