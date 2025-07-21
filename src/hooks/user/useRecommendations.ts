@@ -1,25 +1,15 @@
 import { useState } from "react";
-import {
-  MovieRecommendation,
-  RatedMovie,
-  WantToWatchMovie,
-} from "@/types/movie";
-import { useLocalStorage, STORAGE_KEYS } from "@/lib";
+import { MovieRecommendation } from "@/types/movie";
+import { useRatedMoviesDb } from "./useRatedMoviesDb";
+import { useWantToWatchDb } from "./useWantToWatchDb";
 
 // useRecommendations Hook: Manages AI-powered movie recommendations
 // This hook encapsulates all the logic for generating and managing recommendations
 // It integrates with the user's rated movies and want-to-watch list
 export const useRecommendations = () => {
-  // Local Storage Integration: Read user data from localStorage
-  // We only read here, not write, to avoid conflicts with other hooks
-  const [ratedMovies] = useLocalStorage<RatedMovie[]>(
-    STORAGE_KEYS.RATED_MOVIES,
-    []
-  );
-  const [wantToWatchList] = useLocalStorage<WantToWatchMovie[]>(
-    STORAGE_KEYS.WANT_TO_WATCH,
-    []
-  );
+  // Database Integration: Read user data from database
+  const { ratedMovies } = useRatedMoviesDb();
+  const { wantToWatchList } = useWantToWatchDb();
 
   // Local State: Manage recommendations and loading state
   // This state is specific to this hook and doesn't persist

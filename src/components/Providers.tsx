@@ -1,32 +1,41 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { SessionProvider } from "next-auth/react";
 import { useState } from "react";
 
-// Providers Component: This MUST be a Client Component (hence "use client")
-// Server Components cannot use hooks, browser APIs, or event handlers
-// This component provides React Query context to the entire app
-export const Providers = ({ children }: { children: React.ReactNode }) => {
-  // useState with function initializer: This ensures QueryClient is only created once
-  // Without this, a new QueryClient would be created on every render
+// PROVIDERS: Global state and context providers
+// This component wraps the app with necessary providers for:
+// - React Query (data fetching and caching)
+// - NextAuth (authentication state) - SessionProvider for client-side auth
+// - Any other global state management
+
+interface ProvidersProps {
+  children: React.ReactNode;
+}
+
+export const Providers = ({ children }: ProvidersProps) => {
+  // Create a new QueryClient instance for each session
+  // This ensures clean state between different users
   const [queryClient] = useState(
     () =>
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 1000 * 60 * 60 * 24, // 24 hours - how long data is considered fresh
-            gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days - how long to keep unused data in cache
-            retry: 1, // Only retry failed requests once
+            // Retry failed requests up to 3 times
+            retry: 3,
+            // Refetch on window focus (good for keeping data fresh)
+            refetchOnWindowFocus: true,
+            // Stale time for queries (how long data is considered fresh)
+            staleTime: 1000 * 60 * 5, // 5 minutes
           },
         },
       })
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    <SessionProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </SessionProvider>
   );
 };

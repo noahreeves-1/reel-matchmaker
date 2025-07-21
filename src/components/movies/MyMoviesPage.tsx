@@ -10,19 +10,15 @@ import {
   ConfirmDialog,
   RatingModal,
 } from "@/components/movies";
-import { useRatedMovies } from "@/hooks";
-import { useLocalStorage, STORAGE_KEYS } from "@/lib";
+import { useRatedMoviesDb } from "@/hooks/user/useRatedMoviesDb";
+import { useWantToWatchDb } from "@/hooks/user/useWantToWatchDb";
 import { WantToWatchMovie } from "@/types/movie";
 import { TMDBMovie } from "@/lib/tmdb";
-import { useMovieActions } from "@/hooks/user/useMovieActions";
 
 // MY MOVIES PAGE: User's personal movie collection management
 // This component displays and manages user's rated movies and want-to-watch list
 export const MyMoviesPage = () => {
   const [activeTab, setActiveTab] = useState<"rated" | "wishlist">("rated");
-  const [wantToWatchList, setWantToWatchList] = useLocalStorage<
-    WantToWatchMovie[]
-  >(STORAGE_KEYS.WANT_TO_WATCH, []);
 
   // Add client-side only state to prevent hydration mismatches
   const [isClient, setIsClient] = useState(false);
@@ -36,6 +32,7 @@ export const MyMoviesPage = () => {
     movie: null,
   });
 
+  // Database-based hooks
   const {
     ratedMovies,
     movieDetails,
@@ -46,40 +43,33 @@ export const MyMoviesPage = () => {
     closeConfirmDialog,
     handleRemoveRating,
     loadRatedMovies,
-  } = useRatedMovies();
+    saveRating,
+  } = useRatedMoviesDb();
 
-  // Use the same movie actions hook as the main app for consistent behavior
-  const { rateMovie } = useMovieActions();
+  const {
+    wantToWatchList,
+    addToWantToWatch,
+    removeFromWantToWatch,
+    isInWantToWatch,
+  } = useWantToWatchDb();
 
   // Set client flag after hydration
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  const handleRemoveFromWantToWatch = (movieId: number) => {
-    setWantToWatchList((prev: WantToWatchMovie[]) =>
-      prev.filter((wm: WantToWatchMovie) => wm.id !== movieId)
-    );
+  const handleRemoveFromWantToWatch = async (movieId: number) => {
+    await removeFromWantToWatch(movieId);
   };
 
-  const handleToggleWantToWatch = (
+  const handleToggleWantToWatch = async (
     movie: TMDBMovie,
     isInWantToWatch: boolean
   ) => {
     if (isInWantToWatch) {
-      handleRemoveFromWantToWatch(movie.id);
+      await handleRemoveFromWantToWatch(movie.id);
     } else {
-      const wantToWatchMovie: WantToWatchMovie = {
-        id: movie.id,
-        title: movie.title,
-        poster_path: movie.poster_path || undefined,
-        release_date: movie.release_date,
-        addedAt: new Date().toISOString(),
-      };
-      setWantToWatchList((prev: WantToWatchMovie[]) => [
-        ...prev,
-        wantToWatchMovie,
-      ]);
+      await addToWantToWatch(movie.id);
     }
   };
 
@@ -98,7 +88,7 @@ export const MyMoviesPage = () => {
     });
   };
 
-  const handleRateMovie = (
+  const handleRateMovie = async (
     movie: {
       id: number;
       title: string;
@@ -108,34 +98,21 @@ export const MyMoviesPage = () => {
     },
     rating: number
   ) => {
-    // Convert to TMDBMovie format for the rateMovie function
-    const tmdbMovie: TMDBMovie = {
-      id: movie.id,
-      title: movie.title,
-      poster_path: movie.poster_path || null,
-      backdrop_path: null,
-      release_date: movie.release_date || "",
-      overview: movie.overview || "",
-      vote_average: 0,
-      vote_count: 0,
-      genre_ids: [],
-      popularity: 0,
-    };
+    // Save the rating to the database
+    const success = await saveRating(movie.id, rating);
 
-    // Use the same rateMovie function as the main app
-    // This automatically handles localStorage updates and want-to-watch removal
-    rateMovie(tmdbMovie, rating);
+    if (success) {
+      // Close the modal
+      handleCloseRatingModal();
 
-    // Close the modal
-    handleCloseRatingModal();
+      // Refresh the rated movies data to reflect the changes
+      await loadRatedMovies();
 
-    // Refresh the rated movies data to reflect the changes
-    // This ensures the UI updates immediately without a page reload
-    loadRatedMovies();
-
-    // Update the want-to-watch list state to remove the rated movie
-    const updatedWantToWatch = wantToWatchList.filter((m) => m.id !== movie.id);
-    setWantToWatchList(updatedWantToWatch);
+      // Remove from want-to-watch list if it was there
+      if (isInWantToWatch(movie.id)) {
+        await removeFromWantToWatch(movie.id);
+      }
+    }
   };
 
   // Show loading state until client-side hydration is complete

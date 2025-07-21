@@ -12,6 +12,8 @@ interface MovieGridProps {
   wantToWatchList?: number[];
   onOpenRatingModal?: (movieId: number) => void;
   onToggleWantToWatch?: (movie: TMDBMovie, isInWantToWatch: boolean) => void;
+  ratingLoadingStates?: Record<number, boolean>;
+  wantToWatchLoadingStates?: Record<number, boolean>;
 }
 
 export const MovieGrid = ({
@@ -21,6 +23,8 @@ export const MovieGrid = ({
   wantToWatchList = [],
   onOpenRatingModal,
   onToggleWantToWatch,
+  ratingLoadingStates = {},
+  wantToWatchLoadingStates = {},
 }: MovieGridProps) => {
   if (isLoading) {
     return (
@@ -53,6 +57,8 @@ export const MovieGrid = ({
             onOpenRatingModal ? () => onOpenRatingModal(movie.id) : undefined
           }
           onToggleWantToWatch={onToggleWantToWatch}
+          isRatingLoading={ratingLoadingStates[movie.id] || false}
+          isWantToWatchLoading={wantToWatchLoadingStates[movie.id] || false}
         />
       ))}
     </div>

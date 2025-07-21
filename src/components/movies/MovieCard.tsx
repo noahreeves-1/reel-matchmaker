@@ -15,6 +15,8 @@ interface MovieCardProps {
   isInWantToWatch?: boolean;
   onOpenRatingModal?: () => void;
   onToggleWantToWatch?: (movie: TMDBMovie, isInWantToWatch: boolean) => void;
+  isRatingLoading?: boolean;
+  isWantToWatchLoading?: boolean;
 }
 
 export const MovieCard = ({
@@ -24,6 +26,8 @@ export const MovieCard = ({
   isInWantToWatch = false,
   onOpenRatingModal,
   onToggleWantToWatch,
+  isRatingLoading = false,
+  isWantToWatchLoading = false,
 }: MovieCardProps) => {
   const router = useRouter();
 
@@ -98,21 +102,87 @@ export const MovieCard = ({
             {isClient && onOpenRatingModal && (
               <button
                 onClick={onOpenRatingModal}
-                className="text-xs bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors"
+                disabled={isRatingLoading}
+                className={`text-xs px-2 py-1 rounded transition-colors ${
+                  isRatingLoading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : userRating
+                    ? "bg-green-500 hover:bg-green-600 text-white"
+                    : "bg-blue-500 hover:bg-blue-600 text-white"
+                }`}
               >
-                Rate
+                {isRatingLoading ? (
+                  <span className="flex items-center">
+                    <svg
+                      className="animate-spin -ml-1 mr-1 h-3 w-3 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Rating...
+                  </span>
+                ) : userRating ? (
+                  "Rated"
+                ) : (
+                  "Rate"
+                )}
               </button>
             )}
             {isClient && onToggleWantToWatch && (
               <button
                 onClick={() => onToggleWantToWatch(movie, isInWantToWatch)}
+                disabled={isWantToWatchLoading}
                 className={`text-xs px-2 py-1 rounded transition-colors ${
-                  isInWantToWatch
+                  isWantToWatchLoading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : isInWantToWatch
                     ? "bg-red-500 hover:bg-red-600 text-white"
                     : "bg-gray-500 hover:bg-gray-600 text-white"
                 }`}
               >
-                {isInWantToWatch ? "Remove" : "Watch"}
+                {isWantToWatchLoading ? (
+                  <span className="flex items-center">
+                    <svg
+                      className="animate-spin -ml-1 mr-1 h-3 w-3 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    {isInWantToWatch ? "Removing..." : "Adding..."}
+                  </span>
+                ) : isInWantToWatch ? (
+                  "Remove"
+                ) : (
+                  "Watch"
+                )}
               </button>
             )}
           </div>

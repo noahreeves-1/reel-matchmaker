@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Header,
   Hero,
@@ -10,12 +11,10 @@ import {
   ErrorDisplay,
 } from "@/components/movies";
 import { TMDBMovie, handleApiError } from "@/lib";
-import {
-  useMovies,
-  useRatingModal,
-  useRecommendations,
-  useMovieActions,
-} from "@/hooks";
+import { useMovies, useRatingModal, useRecommendations } from "@/hooks";
+import { useMovieActionsDb } from "@/hooks/user/useMovieActionsDb";
+import { useRatedMoviesDb } from "@/hooks/user/useRatedMoviesDb";
+import { useWantToWatchDb } from "@/hooks/user/useWantToWatchDb";
 import { TMDBResponse } from "@/lib/tmdb";
 
 // RENDERING STRATEGY: Client-Side Rendering (CSR) with Server Data
@@ -39,6 +38,14 @@ export const MovieApp = ({ initialMovies }: MovieAppProps) => {
   // Custom Hooks: These encapsulate complex logic and state management
   // Each hook has a single responsibility and can be reused across components
 
+  // Loading states for immediate UI feedback
+  const [ratingLoadingStates, setRatingLoadingStates] = useState<
+    Record<number, boolean>
+  >({});
+  const [wantToWatchLoadingStates, setWantToWatchLoadingStates] = useState<
+    Record<number, boolean>
+  >({});
+
   // Recommendations Hook: Manages AI-powered movie recommendations
   const {
     recommendations,
@@ -49,13 +56,19 @@ export const MovieApp = ({ initialMovies }: MovieAppProps) => {
   } = useRecommendations();
 
   // Movie Actions Hook: Manages user interactions with movies (rating, want-to-watch)
+  const { rateMovie, toggleWantToWatch, getRating } = useMovieActionsDb();
+
+  // Database-backed hooks for user data
   const {
     ratedMovies,
+    isLoading: isLoadingRatedMovies,
+    loadRatedMovies,
+  } = useRatedMoviesDb();
+  const {
     wantToWatchList,
-    rateMovie,
-    toggleWantToWatch,
-    getRating,
-  } = useMovieActions();
+    isLoading: isLoadingWantToWatch,
+    loadWantToWatchList,
+  } = useWantToWatchDb();
 
   // Movies Hook: Manages movie data fetching, search, and pagination
   // This hook handles both popular movies and search results
@@ -76,47 +89,73 @@ export const MovieApp = ({ initialMovies }: MovieAppProps) => {
   // Rating Modal Hook: Manages the rating modal state and interactions
   const { isOpen, movieId, openModal, closeModal } = useRatingModal();
 
-  const handleRateMovie = (movieId: number, rating: number) => {
-    // First try to find the movie in the main movies array
-    let movie = movies.find((m: TMDBMovie) => m.id === movieId);
+  const handleRateMovie = async (movieId: number, rating: number) => {
+    // Set loading state for this specific movie
+    setRatingLoadingStates((prev) => ({ ...prev, [movieId]: true }));
 
-    // If not found in main movies, try to find it in recommendations
-    if (!movie) {
-      const recommendation = recommendations.find((rec) => rec.id === movieId);
-      if (recommendation) {
-        // Convert Recommendation to TMDBMovie format
-        movie = {
-          id: recommendation.id,
-          title: recommendation.title,
-          poster_path: recommendation.poster_path || null,
-          backdrop_path: null,
-          release_date: recommendation.release_date || "",
-          overview: "",
-          vote_average: 0,
-          vote_count: 0,
-          genre_ids: [],
-          popularity: 0,
-        };
-      }
-    }
+    try {
+      // First try to find the movie in the main movies array
+      let movie = movies.find((m: TMDBMovie) => m.id === movieId);
 
-    if (!movie) {
-      if (process.env.NODE_ENV === "development") {
-        console.warn(
-          `⚠️ Movie with ID ${movieId} not found in movies or recommendations`
+      // If not found in main movies, try to find it in recommendations
+      if (!movie) {
+        const recommendation = recommendations.find(
+          (rec) => rec.id === movieId
         );
+        if (recommendation) {
+          // Convert Recommendation to TMDBMovie format
+          movie = {
+            id: recommendation.id,
+            title: recommendation.title,
+            poster_path: recommendation.poster_path || null,
+            backdrop_path: null,
+            release_date: recommendation.release_date || "",
+            overview: "",
+            vote_average: 0,
+            vote_count: 0,
+            genre_ids: [],
+            popularity: 0,
+          };
+        }
       }
-      return;
-    }
 
-    rateMovie(movie, rating);
+      if (!movie) {
+        if (process.env.NODE_ENV === "development") {
+          console.warn(
+            `⚠️ Movie with ID ${movieId} not found in movies or recommendations`
+          );
+        }
+        return;
+      }
+
+      await rateMovie(movie, rating);
+      // Refresh the rated movies list after rating
+      await loadRatedMovies();
+    } catch (error) {
+      console.error("Error rating movie:", error);
+    } finally {
+      // Clear loading state
+      setRatingLoadingStates((prev) => ({ ...prev, [movieId]: false }));
+    }
   };
 
-  const handleToggleWantToWatch = (
+  const handleToggleWantToWatch = async (
     movie: TMDBMovie
     // isInWantToWatch: boolean // Unused parameter - keeping for future use
   ) => {
-    toggleWantToWatch(movie);
+    // Set loading state for this specific movie
+    setWantToWatchLoadingStates((prev) => ({ ...prev, [movie.id]: true }));
+
+    try {
+      await toggleWantToWatch(movie);
+      // Refresh the want-to-watch list after toggling
+      await loadWantToWatchList();
+    } catch (error) {
+      console.error("Error toggling want-to-watch:", error);
+    } finally {
+      // Clear loading state
+      setWantToWatchLoadingStates((prev) => ({ ...prev, [movie.id]: false }));
+    }
   };
 
   const handleOpenRatingModal = (movie: TMDBMovie) => {
@@ -137,7 +176,9 @@ export const MovieApp = ({ initialMovies }: MovieAppProps) => {
     }
   };
 
-  const currentRating = movieId ? getRating(movieId) : undefined;
+  const currentRating = movieId
+    ? ratedMovies.find((movie) => movie.id === movieId)?.rating
+    : undefined;
 
   const handleOpenRatingModalById = (movieId: number) => {
     const movie = movies.find((m) => m.id === movieId);
@@ -193,6 +234,8 @@ export const MovieApp = ({ initialMovies }: MovieAppProps) => {
             wantToWatchList={wantToWatchList.map((movie) => movie.id)}
             onOpenRatingModal={handleOpenRatingModalById}
             onToggleWantToWatch={handleToggleWantToWatch}
+            ratingLoadingStates={ratingLoadingStates}
+            wantToWatchLoadingStates={wantToWatchLoadingStates}
           />
         )}
       </main>
