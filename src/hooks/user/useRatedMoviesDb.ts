@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { RatedMovie } from "@/types/movie";
 import { useMovieDetailsBatch } from "../queries/useMovieDetails";
@@ -64,7 +64,7 @@ export const useRatedMoviesDb = () => {
     error: movieDetailsError,
   } = useMovieDetailsBatch(movieIds);
 
-  const loadRatedMovies = async () => {
+  const loadRatedMovies = useCallback(async () => {
     if (!session?.user?.email) {
       setRatedMovies([]);
       return;
@@ -100,7 +100,7 @@ export const useRatedMoviesDb = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [session?.user?.email]);
 
   const saveRating = async (
     movieId: number,
@@ -198,7 +198,7 @@ export const useRatedMoviesDb = () => {
     } else if (status === "unauthenticated") {
       setRatedMovies([]);
     }
-  }, [session, status]);
+  }, [session, status, loadRatedMovies]);
 
   return {
     ratedMovies,

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getUserRatings, saveUserRating, getUserRating } from "@/lib/db-utils";
+import { getUserRatings, saveUserRating } from "@/lib/db-utils";
 
 // GET /api/user-ratings - Get all ratings for the current user
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await auth();
 

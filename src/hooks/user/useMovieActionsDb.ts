@@ -43,7 +43,7 @@ export const useMovieActionsDb = () => {
           if (isInList) {
             await removeFromWantToWatch(movie.id);
           }
-        } catch (error) {
+        } catch {
           // Ignore errors when checking/removing from want-to-watch list
           // The rating was successful, so we don't want to fail the whole operation
         }
@@ -52,6 +52,7 @@ export const useMovieActionsDb = () => {
         throw error;
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [session?.user?.email]
   );
 

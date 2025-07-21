@@ -37,7 +37,7 @@ export default function LoginPage() {
         router.push("/my-movies");
         router.refresh();
       }
-    } catch (error) {
+    } catch {
       setError("Something went wrong.");
     } finally {
       setIsLoading(false);

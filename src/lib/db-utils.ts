@@ -351,7 +351,7 @@ export async function getWantToWatchList(userEmail: string) {
       .select()
       .from(wantToWatch)
       .where(eq(wantToWatch.userId, user.id))
-      .orderBy(wantToWatch.priority, wantToWatch.addedAt);
+      .orderBy(wantToWatch.addedAt);
 
     return list;
   } catch (error) {

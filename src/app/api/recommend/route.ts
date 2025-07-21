@@ -98,7 +98,6 @@ async function searchMovieByTitle(
 
   // Extract just the movie title if it includes a year in parentheses
   const cleanTitle = title.replace(/\s*\(\d{4}\)\s*$/, "").trim();
-  console.log(`🔍 API: Searching for "${cleanTitle}" (original: "${title}")`);
 
   try {
     // External API Call: This runs on the server, so it's secure
@@ -247,14 +246,8 @@ function createEnhancedReason(
 }
 
 export async function POST(req: Request) {
-  console.log("🤖 API: Recommendation request received");
-
   try {
     const body = await req.json();
-    console.log(
-      "📥 API: Request body received:",
-      JSON.stringify(body, null, 2)
-    );
 
     const {
       ratedMovies,
@@ -263,28 +256,16 @@ export async function POST(req: Request) {
       body;
 
     if (!ratedMovies || ratedMovies.length === 0) {
-      console.log("❌ API: No rated movies provided");
       return new Response(
         JSON.stringify({ error: "No rated movies provided" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    console.log("📊 API: Total rated movies:", ratedMovies.length);
-    console.log("📊 API: Rated movies:", ratedMovies);
-    console.log("💝 API: Want to watch movies:", wantToWatchList);
-    console.log(
-      "📊 API: Rated movies titles:",
-      ratedMovies.map((m) => m.title)
-    );
-
     // Filter to only include movies rated 7+ (liked movies)
     const likedMovies = ratedMovies.filter((movie) => movie.rating >= 7);
-    console.log("👍 API: Liked movies (7+):", likedMovies.length);
-    console.log("👍 API: Liked movies:", likedMovies);
 
     if (likedMovies.length === 0) {
-      console.log("❌ API: No highly rated movies found");
       return new Response(
         JSON.stringify({
           error:
@@ -314,27 +295,10 @@ export async function POST(req: Request) {
       })
     );
 
-    console.log("📋 API: Rated movie keys:", Array.from(ratedMovieKeys));
-    console.log(
-      "💝 API: Want to watch movie keys:",
-      Array.from(wantToWatchKeys)
-    );
-
     // Create prompt for AI recommendations - include ALL rated movies, not just liked ones
-    const allRatedMoviesList = ratedMovies
-      .map((movie) => `${movie.title} - (${movie.rating}/10)`)
-      .join(", ");
-
     const wantToWatchMoviesList = wantToWatchList
       .map((movie: WantToWatchMovie) => movie.title)
       .join(", ");
-
-    console.log("🎬 API: All rated movies for AI prompt:", allRatedMoviesList);
-    console.log(
-      "💝 API: Want to watch movies for AI prompt:",
-      wantToWatchMoviesList
-    );
-    console.log("🤖 API: Calling OpenAI with prompt...");
 
     // External API Call: This runs on the server, so it's secure
     // The API key is never exposed to the client

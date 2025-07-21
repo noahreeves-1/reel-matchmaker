@@ -23,9 +23,6 @@ export const MovieDetailsWithBreadcrumbs = ({
     const referrer = document.referrer;
     const previousPage = sessionStorage.getItem("previousPage");
 
-    console.log("Document referrer:", referrer);
-    console.log("SessionStorage previousPage:", previousPage);
-
     // Parse the referrer URL to determine the source
     const breadcrumbItems: BreadcrumbItem[] = [{ label: "Home", href: "/" }];
 
@@ -40,8 +37,6 @@ export const MovieDetailsWithBreadcrumbs = ({
         console.error("Error parsing referrer:", error);
       }
     }
-
-    console.log("Source path:", sourcePath);
 
     if (sourcePath) {
       if (sourcePath === "/my-movies") {
@@ -59,15 +54,12 @@ export const MovieDetailsWithBreadcrumbs = ({
         breadcrumbItems.push({ label: "Popular Movies", href: "/movies" });
       }
     } else {
-      console.log("No source path found");
       // If no source path (direct navigation), use default
       breadcrumbItems.push({ label: "Popular Movies", href: "/movies" });
     }
 
     // Add the current movie title (no href since it's the current page)
     breadcrumbItems.push({ label: movie.title });
-
-    console.log("Final breadcrumbs:", breadcrumbItems);
     setBreadcrumbs(breadcrumbItems);
   }, [movie.title]);
 

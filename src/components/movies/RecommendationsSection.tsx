@@ -79,16 +79,16 @@ export const RecommendationsSection = ({
   };
 
   const handleToggleWantToWatch = (
-    movie: MovieRecommendation,
-    isInWantToWatch: boolean
+    _movie: MovieRecommendation,
+    _isInWantToWatch: boolean
   ) => {
     // This would typically call a function to toggle want to watch
     // For now, we'll just log the action
-    console.log(
-      `${isInWantToWatch ? "Removing" : "Adding"} ${
-        movie.title
-      } to want to watch list`
-    );
+    // console.log(
+    //   `${isInWantToWatch ? "Removing" : "Adding"} ${
+    //     movie.title
+    //   } to want to watch list`
+    // );
   };
 
   const getMatchLevelDisplay = (level?: string) => {

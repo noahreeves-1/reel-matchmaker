@@ -56,19 +56,11 @@ export const MovieApp = ({ initialMovies }: MovieAppProps) => {
   } = useRecommendations();
 
   // Movie Actions Hook: Manages user interactions with movies (rating, want-to-watch)
-  const { rateMovie, toggleWantToWatch, getRating } = useMovieActionsDb();
+  const { rateMovie, toggleWantToWatch } = useMovieActionsDb();
 
   // Database-backed hooks for user data
-  const {
-    ratedMovies,
-    isLoading: isLoadingRatedMovies,
-    loadRatedMovies,
-  } = useRatedMoviesDb();
-  const {
-    wantToWatchList,
-    isLoading: isLoadingWantToWatch,
-    loadWantToWatchList,
-  } = useWantToWatchDb();
+  const { ratedMovies, loadRatedMovies } = useRatedMoviesDb();
+  const { wantToWatchList, loadWantToWatchList } = useWantToWatchDb();
 
   // Movies Hook: Manages movie data fetching, search, and pagination
   // This hook handles both popular movies and search results

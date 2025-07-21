@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { getWantToWatchList, addToWantToWatch } from "@/lib/db-utils";
 
 // GET /api/want-to-watch - Get all want-to-watch items for the current user
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await auth();
 

@@ -5,7 +5,7 @@ import { removeFromWantToWatch, addToWantToWatch } from "@/lib/db-utils";
 // POST /api/want-to-watch/[movieId] - Add a movie to want-to-watch list
 export async function POST(
   request: NextRequest,
-  { params }: { params: { movieId: string } }
+  { params }: { params: Promise<{ movieId: string }> }
 ) {
   try {
     const session = await auth();
@@ -14,7 +14,8 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const movieId = parseInt(params.movieId);
+    const { movieId: movieIdParam } = await params;
+    const movieId = parseInt(movieIdParam);
 
     if (isNaN(movieId)) {
       return NextResponse.json({ error: "Invalid movie ID" }, { status: 400 });
@@ -62,7 +63,7 @@ export async function POST(
 // GET /api/want-to-watch/[movieId] - Check if a movie is in want-to-watch list
 export async function GET(
   request: NextRequest,
-  { params }: { params: { movieId: string } }
+  { params }: { params: Promise<{ movieId: string }> }
 ) {
   try {
     const session = await auth();
@@ -71,7 +72,8 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const movieId = parseInt(params.movieId);
+    const { movieId: movieIdParam } = await params;
+    const movieId = parseInt(movieIdParam);
 
     if (isNaN(movieId)) {
       return NextResponse.json({ error: "Invalid movie ID" }, { status: 400 });
@@ -118,7 +120,7 @@ export async function GET(
 // DELETE /api/want-to-watch/[movieId] - Remove a movie from want-to-watch list
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { movieId: string } }
+  { params }: { params: Promise<{ movieId: string }> }
 ) {
   try {
     const session = await auth();
@@ -127,7 +129,8 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const movieId = parseInt(params.movieId);
+    const { movieId: movieIdParam } = await params;
+    const movieId = parseInt(movieIdParam);
 
     if (isNaN(movieId)) {
       return NextResponse.json({ error: "Invalid movie ID" }, { status: 400 });

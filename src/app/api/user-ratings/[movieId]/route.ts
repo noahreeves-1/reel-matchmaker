@@ -5,7 +5,7 @@ import { removeUserRating, saveUserRating } from "@/lib/db-utils";
 // POST /api/user-ratings/[movieId] - Rate a movie
 export async function POST(
   request: NextRequest,
-  { params }: { params: { movieId: string } }
+  { params }: { params: Promise<{ movieId: string }> }
 ) {
   try {
     const session = await auth();
@@ -14,7 +14,8 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const movieId = parseInt(params.movieId);
+    const { movieId: movieIdParam } = await params;
+    const movieId = parseInt(movieIdParam);
 
     if (isNaN(movieId)) {
       return NextResponse.json({ error: "Invalid movie ID" }, { status: 400 });
@@ -78,7 +79,7 @@ export async function POST(
 // GET /api/user-ratings/[movieId] - Get a specific rating
 export async function GET(
   request: NextRequest,
-  { params }: { params: { movieId: string } }
+  { params }: { params: Promise<{ movieId: string }> }
 ) {
   try {
     const session = await auth();
@@ -87,7 +88,8 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const movieId = parseInt(params.movieId);
+    const { movieId: movieIdParam } = await params;
+    const movieId = parseInt(movieIdParam);
 
     if (isNaN(movieId)) {
       return NextResponse.json({ error: "Invalid movie ID" }, { status: 400 });
@@ -121,7 +123,7 @@ export async function GET(
 // DELETE /api/user-ratings/[movieId] - Remove a specific rating
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { movieId: string } }
+  { params }: { params: Promise<{ movieId: string }> }
 ) {
   try {
     const session = await auth();
@@ -130,7 +132,8 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const movieId = parseInt(params.movieId);
+    const { movieId: movieIdParam } = await params;
+    const movieId = parseInt(movieIdParam);
 
     if (isNaN(movieId)) {
       return NextResponse.json({ error: "Invalid movie ID" }, { status: 400 });

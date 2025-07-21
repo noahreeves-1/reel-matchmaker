@@ -21,7 +21,6 @@ export const useMovieDetails = (movieId: number | null) => {
   return useQuery({
     queryKey: ["movie", "details", movieId],
     queryFn: () => {
-      console.log(`🎬 Fetching movie details for ID: ${movieId}`);
       return getMovieDetails(movieId!);
     },
     enabled: !!movieId,
@@ -42,13 +41,10 @@ export const useMovieDetailsBatch = (movieIds: number[]) => {
   return useQuery({
     queryKey: ["movies", "details", idsHash],
     queryFn: async () => {
-      console.log(`🎬 Batch fetching movie details for IDs:`, movieIds);
-
       // Filter out any invalid IDs
       const validIds = movieIds.filter((id) => id && !isNaN(id));
 
       if (validIds.length === 0) {
-        console.log(`🎬 No valid movie IDs to fetch`);
         return {};
       }
 
@@ -56,7 +52,6 @@ export const useMovieDetailsBatch = (movieIds: number[]) => {
       const moviePromises = validIds.map(async (id) => {
         try {
           const movie = await getMovieDetails(id);
-          console.log(`✅ Successfully fetched movie ${id}: ${movie.title}`);
           return { id, movie, success: true };
         } catch (error) {
           console.warn(`❌ Failed to fetch movie ${id}:`, error);
@@ -78,11 +73,11 @@ export const useMovieDetailsBatch = (movieIds: number[]) => {
         }
       });
 
-      console.log(
-        `🎬 Batch fetch complete. Successfully fetched ${
-          Object.keys(movieMap).length
-        }/${validIds.length} movies`
-      );
+      // console.log(
+      //   `🎬 Batch fetch complete. Successfully fetched ${
+      //     Object.keys(movieMap).length
+      //   }/${validIds.length} movies`
+      // );
       return movieMap;
     },
     enabled: movieIds.length > 0,

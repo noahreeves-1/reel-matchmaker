@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { WantToWatchMovie } from "@/types/movie";
 import { useMovieDetailsBatch } from "../queries/useMovieDetails";
@@ -58,7 +58,7 @@ export const useWantToWatchDb = () => {
     error: movieDetailsError,
   } = useMovieDetailsBatch(movieIds);
 
-  const loadWantToWatchList = async () => {
+  const loadWantToWatchList = useCallback(async () => {
     if (!session?.user?.email) {
       setWantToWatchList([]);
       return;
@@ -95,7 +95,7 @@ export const useWantToWatchDb = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [session?.user?.email]);
 
   const addToWantToWatch = async (
     movieId: number,
@@ -184,7 +184,7 @@ export const useWantToWatchDb = () => {
     } else if (status === "unauthenticated") {
       setWantToWatchList([]);
     }
-  }, [session, status]);
+  }, [session, status, loadWantToWatchList]);
 
   return {
     wantToWatchList,
