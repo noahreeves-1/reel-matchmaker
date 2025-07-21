@@ -37,6 +37,14 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
     movie: null,
   });
 
+  // Loading states for action buttons
+  const [ratingLoadingStates, setRatingLoadingStates] = useState<
+    Record<number, boolean>
+  >({});
+  const [wantToWatchLoadingStates, setWantToWatchLoadingStates] = useState<
+    Record<number, boolean>
+  >({});
+
   // Database-based hooks with initial data from SSR
   const {
     ratedMovies,
@@ -71,10 +79,18 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
     movie: TMDBMovie,
     isInWantToWatch: boolean
   ) => {
-    if (isInWantToWatch) {
-      await handleRemoveFromWantToWatch(movie.id);
-    } else {
-      await addToWantToWatch(movie.id);
+    setWantToWatchLoadingStates((prev) => ({ ...prev, [movie.id]: true }));
+
+    try {
+      if (isInWantToWatch) {
+        await handleRemoveFromWantToWatch(movie.id);
+      } else {
+        await addToWantToWatch(movie.id);
+      }
+    } catch (error) {
+      console.error("Error toggling want-to-watch:", error);
+    } finally {
+      setWantToWatchLoadingStates((prev) => ({ ...prev, [movie.id]: false }));
     }
   };
 
@@ -103,20 +119,28 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
     },
     rating: number
   ) => {
-    // Save the rating to the database
-    const success = await saveRating(movie.id, rating);
+    setRatingLoadingStates((prev) => ({ ...prev, [movie.id]: true }));
 
-    if (success) {
-      // Close the modal
-      handleCloseRatingModal();
+    try {
+      // Save the rating to the database
+      const success = await saveRating(movie.id, rating);
 
-      // Refresh the rated movies data to reflect the changes
-      await loadRatedMovies();
+      if (success) {
+        // Close the modal
+        handleCloseRatingModal();
 
-      // Remove from want-to-watch list if it was there
-      if (isInWantToWatch(movie.id)) {
-        await removeFromWantToWatch(movie.id);
+        // Refresh the rated movies data to reflect the changes
+        await loadRatedMovies();
+
+        // Remove from want-to-watch list if it was there
+        if (isInWantToWatch(movie.id)) {
+          await removeFromWantToWatch(movie.id);
+        }
       }
+    } catch (error) {
+      console.error("Error rating movie:", error);
+    } finally {
+      setRatingLoadingStates((prev) => ({ ...prev, [movie.id]: false }));
     }
   };
 
@@ -243,6 +267,12 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
                           onOpenRatingModal={() =>
                             handleOpenRatingModal(movieDetail)
                           }
+                          isRatingLoading={
+                            ratingLoadingStates[movieDetail.id] || false
+                          }
+                          isWantToWatchLoading={
+                            wantToWatchLoadingStates[movieDetail.id] || false
+                          }
                         />
                       ) : (
                         <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
@@ -324,6 +354,12 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
                         onToggleWantToWatch={handleToggleWantToWatch}
                         onOpenRatingModal={() =>
                           handleOpenRatingModal(movieDetail)
+                        }
+                        isRatingLoading={
+                          ratingLoadingStates[movieDetail.id] || false
+                        }
+                        isWantToWatchLoading={
+                          wantToWatchLoadingStates[movieDetail.id] || false
                         }
                       />
                     </div>

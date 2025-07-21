@@ -33,6 +33,12 @@ interface RecommendationsSectionProps {
   onRateMovie: (movieId: number, rating: number) => void;
   isLoading?: boolean;
   recommendations?: MovieRecommendation[];
+  ratingLoadingStates?: Record<number, boolean>;
+  wantToWatchLoadingStates?: Record<number, boolean>;
+  onToggleWantToWatch?: (
+    movie: MovieRecommendation,
+    isInWantToWatch: boolean
+  ) => void;
 }
 
 export const RecommendationsSection = ({
@@ -43,6 +49,9 @@ export const RecommendationsSection = ({
   onRateMovie,
   isLoading = false,
   recommendations = [],
+  ratingLoadingStates = {},
+  wantToWatchLoadingStates = {},
+  onToggleWantToWatch,
 }: RecommendationsSectionProps) => {
   const [ratingModal, setRatingModal] = useState<{
     isOpen: boolean;
@@ -90,16 +99,12 @@ export const RecommendationsSection = ({
   };
 
   const handleToggleWantToWatch = (
-    _movie: MovieRecommendation,
-    _isInWantToWatch: boolean
+    movie: MovieRecommendation,
+    isInWantToWatch: boolean
   ) => {
-    // This would typically call a function to toggle want to watch
-    // For now, we'll just log the action
-    // console.log(
-    //   `${isInWantToWatch ? "Removing" : "Adding"} ${
-    //     movie.title
-    //   } to want to watch list`
-    // );
+    if (onToggleWantToWatch) {
+      onToggleWantToWatch(movie, isInWantToWatch);
+    }
   };
 
   const getMatchLevelDisplay = (level?: string) => {
@@ -162,9 +167,9 @@ export const RecommendationsSection = ({
             <p className="text-slate-600 dark:text-slate-400">
               {isClient ? (
                 <>
-                  Based on your {ratedMoviesCount} rated movies
+                  Based on your {ratedMoviesCount} Rated movies
                   {wantToWatchCount > 0 &&
-                    ` and ${wantToWatchCount} want-to-watch items`}
+                    ` and ${wantToWatchCount} Want to Watch items`}
                 </>
               ) : (
                 "Loading your movie data..."
@@ -286,6 +291,9 @@ export const RecommendationsSection = ({
                   (rm) => rm.id === rec.id
                 )?.rating;
                 const isInWantToWatch = false; // This would come from props
+                const isRatingLoading = ratingLoadingStates[rec.id] || false;
+                const isWantToWatchLoading =
+                  wantToWatchLoadingStates[rec.id] || false;
                 const posterUrl = rec.poster_path
                   ? `https://image.tmdb.org/t/p/w200${rec.poster_path}`
                   : null;
@@ -354,47 +362,57 @@ export const RecommendationsSection = ({
                           </div>
 
                           <div className="flex gap-2">
-                            {/* Want to Watch Button */}
-                            <button
-                              onClick={() =>
-                                handleToggleWantToWatch(rec, isInWantToWatch)
-                              }
-                              className={`px-3 py-1.5 rounded-full flex items-center justify-center transition-all duration-200 text-xs font-medium flex-shrink-0 ${
-                                isInWantToWatch
-                                  ? "bg-red-500 text-white"
-                                  : "bg-white dark:bg-slate-600 text-slate-600 dark:text-slate-300 hover:bg-red-500 hover:text-white border border-slate-200 dark:border-slate-600"
-                              }`}
-                            >
-                              <svg
-                                className="w-4 h-4"
-                                fill={isInWantToWatch ? "currentColor" : "none"}
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                                />
-                              </svg>
-                            </button>
-
-                            {/* Rating Button */}
+                            {/* Rating Button - now first */}
                             <button
                               onClick={() => handleOpenRatingModal(rec)}
+                              disabled={isRatingLoading}
                               className={`px-3 py-1.5 rounded-full flex items-center justify-center transition-all duration-200 text-xs font-medium flex-shrink-0 ${
-                                userRating
+                                isRatingLoading
+                                  ? "bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-slate-400 cursor-not-allowed"
+                                  : userRating
                                   ? "bg-yellow-500 text-white"
                                   : "bg-white dark:bg-slate-600 text-slate-600 dark:text-slate-300 hover:bg-yellow-500 hover:text-white border border-slate-200 dark:border-slate-600"
                               }`}
                             >
-                              {userRating ? (
+                              {isRatingLoading ? (
+                                <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                              ) : userRating ? (
                                 <span>{userRating}/10</span>
                               ) : (
                                 <svg
                                   className="w-4 h-4"
                                   fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                </svg>
+                              )}
+                            </button>
+
+                            {/* Want to Watch Button - now second */}
+                            <button
+                              onClick={() =>
+                                handleToggleWantToWatch(rec, isInWantToWatch)
+                              }
+                              disabled={isWantToWatchLoading}
+                              className={`px-3 py-1.5 rounded-full flex items-center justify-center transition-all duration-200 text-xs font-medium flex-shrink-0 ${
+                                isWantToWatchLoading
+                                  ? "bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-slate-400 cursor-not-allowed"
+                                  : isInWantToWatch
+                                  ? "bg-red-500 text-white"
+                                  : "bg-white dark:bg-slate-600 text-slate-600 dark:text-slate-300 hover:bg-red-500 hover:text-white border border-slate-200 dark:border-slate-600"
+                              }`}
+                            >
+                              {isWantToWatchLoading ? (
+                                <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                              ) : (
+                                <svg
+                                  className="w-4 h-4"
+                                  fill={
+                                    isInWantToWatch ? "currentColor" : "none"
+                                  }
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
                                 >
@@ -402,7 +420,7 @@ export const RecommendationsSection = ({
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     strokeWidth={2}
-                                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                                   />
                                 </svg>
                               )}

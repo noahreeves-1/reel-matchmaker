@@ -24,16 +24,16 @@ export const MovieTrailers = ({ movie }: MovieTrailersProps) => {
           >
             <div className="aspect-video bg-slate-200 dark:bg-slate-700 relative overflow-hidden">
               <Image
-                src={`https://img.youtube.com/vi/${trailer.key}/maxresdefault.jpg`}
+                src={`https://img.youtube.com/vi/${trailer.key}/hqdefault.jpg`}
                 alt={trailer.name}
                 fill
                 className="object-cover"
                 loading="lazy"
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 onError={(e) => {
-                  // Fallback to medium quality thumbnail if maxresdefault fails
+                  // Fallback to a placeholder if YouTube thumbnail fails
                   const target = e.target as HTMLImageElement;
-                  target.src = `https://img.youtube.com/vi/${trailer.key}/hqdefault.jpg`;
+                  target.src = "/movie-background-collage.jpg";
                 }}
               />
               <div className="absolute inset-0 bg-black/30 hover:bg-black/20 transition-colors" />

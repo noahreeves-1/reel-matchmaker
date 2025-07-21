@@ -17,6 +17,7 @@ import { useMovieActionsDb } from "@/hooks/user/useMovieActionsDb";
 import { useRatedMoviesDb } from "@/hooks/user/useRatedMoviesDb";
 import { useWantToWatchDb } from "@/hooks/user/useWantToWatchDb";
 import { TMDBResponse } from "@/lib/tmdb";
+import { MovieRecommendation } from "@/types/movie";
 
 // RENDERING STRATEGY: Client-Side Rendering (CSR) with Server Data
 // - This component is rendered on the client side for interactivity
@@ -150,6 +151,39 @@ export const MovieApp = ({ initialMovies }: MovieAppProps) => {
     }
   };
 
+  const handleToggleWantToWatchForRecommendations = async (
+    movie: MovieRecommendation,
+    isInWantToWatch: boolean
+  ) => {
+    // Convert MovieRecommendation to TMDBMovie format
+    const tmdbMovie: TMDBMovie = {
+      id: movie.id,
+      title: movie.title,
+      poster_path: movie.poster_path || null,
+      backdrop_path: null,
+      release_date: movie.release_date || "",
+      overview: "",
+      vote_average: movie.vote_average || 0,
+      vote_count: movie.vote_count || 0,
+      genre_ids: [],
+      popularity: 0,
+    };
+
+    // Set loading state for this specific movie
+    setWantToWatchLoadingStates((prev) => ({ ...prev, [movie.id]: true }));
+
+    try {
+      await toggleWantToWatch(tmdbMovie);
+      // Refresh the want-to-watch list after toggling
+      await loadWantToWatchList();
+    } catch (error) {
+      console.error("Error toggling want-to-watch:", error);
+    } finally {
+      // Clear loading state
+      setWantToWatchLoadingStates((prev) => ({ ...prev, [movie.id]: false }));
+    }
+  };
+
   const handleOpenRatingModal = (movie: TMDBMovie) => {
     openModal(movie.id);
   };
@@ -214,6 +248,9 @@ export const MovieApp = ({ initialMovies }: MovieAppProps) => {
           onRateMovie={handleRateMovie}
           isLoading={isGeneratingRecommendations}
           recommendations={recommendations}
+          ratingLoadingStates={ratingLoadingStates}
+          wantToWatchLoadingStates={wantToWatchLoadingStates}
+          onToggleWantToWatch={handleToggleWantToWatchForRecommendations}
         />
         {movieError ? (
           <ErrorDisplay error={movieError} onRetry={refetch} />
