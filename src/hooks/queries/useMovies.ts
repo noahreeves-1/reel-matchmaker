@@ -93,9 +93,14 @@ export const useMovies = (initialData?: TMDBResponse) => {
   // Flatten all pages into a single array for easy consumption
   const movies = activeQuery.data?.pages.flatMap((page) => page.results) || [];
 
+  // Don't show loading if we have initial data and no search is active
+  const isLoadingMovies = searchQuery.trim()
+    ? activeQuery.isLoading
+    : activeQuery.isLoading && !initialData;
+
   return {
     movies,
-    isLoadingMovies: activeQuery.isLoading,
+    isLoadingMovies,
     movieError: activeQuery.error?.message || null,
     hasMoreMovies: !!activeQuery.hasNextPage,
     isLoadingMore: activeQuery.isFetchingNextPage,

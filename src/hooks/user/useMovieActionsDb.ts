@@ -53,7 +53,6 @@ export const useMovieActionsDb = () => {
         throw new Error(handleApiError(error));
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [session?.user?.email]
   );
 

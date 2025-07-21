@@ -2,7 +2,7 @@
 // This component displays clear instructions on how to use the website
 // Positioned between the hero section and AI recommendations for optimal UX flow
 
-export const InstructionsSection = () => {
+export const HowItWorksSection = () => {
   const steps = [
     {
       number: 1,
@@ -31,7 +31,7 @@ export const InstructionsSection = () => {
   ];
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-8">
+    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6 max-w-5xl mx-auto">
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
           How It Works

@@ -26,14 +26,22 @@ export const getInitialMovies = async (): Promise<TMDBResponse> => {
       throw new Error("TMDB API key not configured");
     }
 
-    const response = await fetch(
-      `${TMDB_BASE_URL}/movie/popular?api_key=${apiKey}&language=en-US&page=1`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    // Add timeout to prevent hanging
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 5000); // 5 second timeout
+
+    const url = `${TMDB_BASE_URL}/movie/popular?api_key=${apiKey}&language=en-US&page=1`;
+
+    const response = await fetch(url, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(
@@ -44,7 +52,7 @@ export const getInitialMovies = async (): Promise<TMDBResponse> => {
     const movies = await response.json();
     return movies;
   } catch (error) {
-    console.error("Failed to fetch initial movies:", error);
+    console.error("getInitialMovies: Error occurred:", error);
     return { results: [], page: 1, total_pages: 0, total_results: 0 };
   }
 };

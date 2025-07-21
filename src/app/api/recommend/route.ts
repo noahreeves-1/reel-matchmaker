@@ -215,8 +215,8 @@ interface AIRecommendation {
 
 // Function to create enhanced reason with social proof
 function createEnhancedReason(
-  movie: TMDBMovie,
-  matchLevel: string
+  movie: TMDBMovie
+  // _matchLevel: string, // Unused parameter - keeping for future enhancement
   // _matchScore: number, // Unused parameter - keeping for future enhancement
   // _ratedMovies: RatedMovie[] // Unused parameter - keeping for future enhancement
 ): string {
@@ -451,7 +451,7 @@ Make the personalizedReason informative and engaging. Include: 1) A brief plot s
         const { score, level } = calculateMatchScore(movieDetails);
 
         // Create enhanced reason with social proof
-        const enhancedReason = createEnhancedReason(movieDetails, level);
+        const enhancedReason = createEnhancedReason(movieDetails);
 
         recommendations.push({
           ...movieDetails,

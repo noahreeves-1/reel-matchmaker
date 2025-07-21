@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getUserRecommendations } from "@/lib/db-utils";
 
@@ -22,7 +22,7 @@ import { getUserRecommendations } from "@/lib/db-utils";
 // - FUTURE IMPROVEMENTS: Redis caching, database indexing, pagination
 
 // GET /api/recommendations - Get user's saved recommendations
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Server-side authentication using NextAuth.js
     const session = await auth();

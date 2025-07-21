@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   experimental: {
     // Optimize bundle size
     optimizePackageImports: ["lucide-react"],
+    ppr: "incremental",
   },
 
   // Image optimization

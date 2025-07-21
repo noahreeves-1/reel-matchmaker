@@ -1,7 +1,10 @@
 import { Suspense } from "react";
-import { MovieApp } from "@/components";
 import { LoadingSkeleton } from "@/components/common";
-import { getInitialMovies } from "@/hooks/server";
+import { Header } from "@/components/layout/Header";
+import { Hero } from "@/components/layout/Hero";
+import { Footer } from "@/components/layout/Footer";
+import { HowItWorksSection } from "@/components/movies/HowItWorksSection";
+import { MovieApp } from "@/components/movies/MovieApp";
 
 // Static Metadata: This overrides the metadata from layout.tsx for this specific page
 // This is used for SEO and social media sharing
@@ -12,35 +15,37 @@ export const metadata = {
   keywords: ["movies", "recommendations", "AI", "TMDB", "streaming"],
 };
 
-// RENDERING STRATEGY: ISR (Incremental Static Regeneration)
-// - This page is statically generated at build time for maximum performance
-// - It's regenerated every hour (3600 seconds) to keep movie data fresh
-// - Benefits: Fast loading, good SEO, reduced server load, fresh content
-// - Perfect for: Content that changes occasionally but not constantly
-//
-// SCALING CONSIDERATIONS:
-// - TRADEOFFS: 1-hour stale data, limited personalization, no real-time updates
-// - VERCEL OPTIMIZATIONS: CDN caching, global distribution, automatic scaling
-// - SCALE BREAKERS: High concurrent users hitting revalidation, TMDB rate limits
-// - FUTURE IMPROVEMENTS: Add user-specific recommendations, real-time updates
-export const revalidate = 3600; // 1 hour in seconds
-
-// Home Page: This is a Server Component by default (no "use client" directive)
-// Server Components can:
-// - Fetch data directly (no useEffect needed)
-// - Access server-side APIs and databases
-// - Be rendered on the server for better performance
-export default async function Home() {
-  // Server-side data fetching: This runs on the server during build time or request time
-  // The data is passed to the client component as props
-  const initialMovies = await getInitialMovies();
-
+// RENDERING STRATEGY: Static Page with Dynamic Islands
+// - Page component is static (no API calls) for immediate rendering
+// - MovieApp component handles its own data fetching
+// - Benefits: Fast static content, dynamic data where needed
+export default function Home() {
   return (
-    // Suspense: This enables streaming and progressive loading
-    // The fallback is shown while the MovieApp component is loading
-    // This improves perceived performance
-    <Suspense fallback={<LoadingSkeleton />}>
-      <MovieApp initialMovies={initialMovies} />
-    </Suspense>
+    <>
+      {/* STATIC HEADER */}
+      <Header />
+
+      {/* STATIC SECTIONS */}
+      <Hero />
+
+      {/* How It Works Section */}
+      <section className="bg-white dark:bg-slate-900">
+        <div className="max-w-7xl mx-auto px-4 py-16">
+          <HowItWorksSection />
+        </div>
+      </section>
+
+      {/* DYNAMIC SECTION - MovieApp handles its own data fetching */}
+      <section className="bg-white dark:bg-slate-900">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <Suspense fallback={<LoadingSkeleton />}>
+            <MovieApp />
+          </Suspense>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <Footer />
+    </>
   );
 }

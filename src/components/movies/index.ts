@@ -11,8 +11,9 @@ export { MyMoviesPage } from "./MyMoviesPage";
 export { MyMoviesPageServer } from "./MyMoviesPageServer";
 export { RatingModal } from "./RatingModal";
 export { RecommendationsSection } from "./RecommendationsSection";
-export { InstructionsSection } from "./InstructionsSection";
+export { HowItWorksSection } from "./HowItWorksSection";
 export { MovieSearch } from "./MovieSearch";
+export { SearchBar } from "./SearchBar";
 
 // Re-export layout and common components
 export { Header, Hero, Footer } from "@/components/layout";

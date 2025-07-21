@@ -3,7 +3,7 @@ import { MovieDetailsWithBreadcrumbs } from "@/components/movies";
 import { getMovieData } from "@/hooks/server";
 import { API_CONFIG } from "@/lib/constants";
 
-// RENDERING STRATEGY: ISR (Incremental Static Regeneration)
+// RENDERING STRATEGY: ISR (Incremental Static Regeneration) with Static Generation
 // - This page is statically generated at build time for maximum performance
 // - It's regenerated every 5 minutes to keep movie details fresh
 // - Benefits: Fast loading, good SEO, reduced API calls to TMDB
@@ -15,7 +15,55 @@ import { API_CONFIG } from "@/lib/constants";
 // - VERCEL OPTIMIZATIONS: Per-page caching, automatic CDN distribution, serverless functions
 // - SCALE BREAKERS: Popular movies causing frequent revalidations, TMDB rate limits
 // - FUTURE IMPROVEMENTS: Add user ratings overlay, real-time popularity updates
-export const revalidate = 300; // 5 minutes in seconds
+export const revalidate = 300;
+
+/**
+ * STATIC GENERATION: Pre-generate popular movie pages at build time
+ * This function tells Next.js which movie IDs to pre-generate as static pages
+ * Benefits: Faster initial loads for popular movies, better SEO, reduced server load
+ *
+ * Next.js will:
+ * 1. Call this function at build time
+ * 2. Pre-generate static HTML for each popular movie
+ * 3. Serve these pages instantly from CDN
+ * 4. Fall back to on-demand generation for other movies
+ */
+export async function generateStaticParams() {
+  try {
+    const apiKey = process.env.TMDB_API_KEY;
+
+    if (!apiKey) {
+      console.warn(
+        "TMDB API key not available during build, skipping static generation"
+      );
+      return [];
+    }
+
+    // Fetch top 20 popular movies to pre-generate
+    const response = await fetch(
+      `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=en-US&page=1`,
+      {
+        headers: { "Content-Type": "application/json" },
+        // No caching during build time - we want fresh data
+      }
+    );
+
+    if (!response.ok) {
+      console.warn("Failed to fetch popular movies for static generation");
+      return [];
+    }
+
+    const data = await response.json();
+
+    // Generate params for top 20 popular movies
+    return data.results.slice(0, 20).map((movie: { id: number }) => ({
+      id: movie.id.toString(),
+    }));
+  } catch (error) {
+    console.warn("Error generating static params:", error);
+    return [];
+  }
+}
 
 /**
  * Validates movie ID and fetches movie data

@@ -42,7 +42,7 @@ export const MovieDetails = ({ movie, breadcrumbs }: MovieDetailsProps) => {
   const [wantToWatchLoading, setWantToWatchLoading] = useState(false);
 
   // Session and authentication
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const isAuthenticated = status === "authenticated";
   const isLoading = status === "loading";
 
