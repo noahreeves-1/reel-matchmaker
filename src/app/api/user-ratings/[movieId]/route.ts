@@ -21,19 +21,11 @@ export async function POST(
     }
 
     const body = await request.json();
-    console.log("Received rating request body:", body);
 
     const { rating, movieTitle, posterPath, releaseDate } = body;
-    console.log("Extracted rating:", rating, "Type:", typeof rating);
 
     // Convert rating to number and validate
     const ratingNumber = Number(rating);
-    console.log(
-      "Converted rating number:",
-      ratingNumber,
-      "Is NaN:",
-      isNaN(ratingNumber)
-    );
 
     if (
       !ratingNumber ||
@@ -41,7 +33,6 @@ export async function POST(
       ratingNumber > 10 ||
       isNaN(ratingNumber)
     ) {
-      console.error("Invalid rating:", { rating, ratingNumber, body });
       return NextResponse.json(
         { error: "Rating must be between 1 and 10" },
         { status: 400 }

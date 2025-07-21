@@ -8,7 +8,7 @@ export * from "./user";
 export * from "./ui";
 
 // Authentication hooks - for managing auth state
-export { useAuth } from "./useAuth";
+// (Using NextAuth.js v5 server-side auth + database-backed hooks)
 
 // Server data hooks - for server-side data fetching
 export * from "./server";

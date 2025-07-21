@@ -23,13 +23,6 @@ export const useMovieActionsDb = () => {
           releaseDate: movie.release_date,
         };
 
-        console.log("Sending rating request:", {
-          movieId: movie.id,
-          rating,
-          ratingType: typeof rating,
-          requestBody,
-        });
-
         const response = await fetch(`/api/user-ratings/${movie.id}`, {
           method: "POST",
           headers: {
@@ -53,7 +46,6 @@ export const useMovieActionsDb = () => {
         } catch (error) {
           // Ignore errors when checking/removing from want-to-watch list
           // The rating was successful, so we don't want to fail the whole operation
-          console.log("Note: Could not remove from want-to-watch list:", error);
         }
       } catch (error) {
         console.error("Error rating movie:", error);
