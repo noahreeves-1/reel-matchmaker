@@ -6,6 +6,7 @@ import {
   Hero,
   MovieGrid,
   RecommendationsSection,
+  InstructionsSection,
   Footer,
   RatingModal,
   ErrorDisplay,
@@ -46,21 +47,20 @@ export const MovieApp = ({ initialMovies }: MovieAppProps) => {
     Record<number, boolean>
   >({});
 
+  // Database-backed hooks for user data
+  const { ratedMovies, loadRatedMovies } = useRatedMoviesDb();
+  const { wantToWatchList, loadWantToWatchList } = useWantToWatchDb();
+
   // Recommendations Hook: Manages AI-powered movie recommendations
+  // Pass the actual ratedMovies and wantToWatchList to ensure consistency
   const {
     recommendations,
     isGeneratingRecommendations,
     generateRecommendations,
-    ratedMoviesCount,
-    wantToWatchCount,
-  } = useRecommendations();
+  } = useRecommendations(ratedMovies, wantToWatchList);
 
   // Movie Actions Hook: Manages user interactions with movies (rating, want-to-watch)
   const { rateMovie, toggleWantToWatch } = useMovieActionsDb();
-
-  // Database-backed hooks for user data
-  const { ratedMovies, loadRatedMovies } = useRatedMoviesDb();
-  const { wantToWatchList, loadWantToWatchList } = useWantToWatchDb();
 
   // Movies Hook: Manages movie data fetching, search, and pagination
   // This hook handles both popular movies and search results
@@ -68,9 +68,9 @@ export const MovieApp = ({ initialMovies }: MovieAppProps) => {
     movies,
     isLoadingMovies,
     movieError,
-    // hasMoreMovies, // Unused - keeping for future pagination feature
-    // isLoadingMore, // Unused - keeping for future pagination feature
-    // loadMoreMovies, // Unused - keeping for future pagination feature
+    hasMoreMovies,
+    isLoadingMore,
+    loadMoreMovies,
     refetch,
     searchQuery,
     isSearching,
@@ -205,10 +205,11 @@ export const MovieApp = ({ initialMovies }: MovieAppProps) => {
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <InstructionsSection />
         <RecommendationsSection
-          ratedMoviesCount={ratedMoviesCount}
+          ratedMoviesCount={ratedMovies.length}
           ratedMovies={ratedMovies}
-          wantToWatchCount={wantToWatchCount}
+          wantToWatchCount={wantToWatchList.length}
           onGenerateRecommendations={handleGenerateRecommendations}
           onRateMovie={handleRateMovie}
           isLoading={isGeneratingRecommendations}
@@ -228,6 +229,9 @@ export const MovieApp = ({ initialMovies }: MovieAppProps) => {
             onToggleWantToWatch={handleToggleWantToWatch}
             ratingLoadingStates={ratingLoadingStates}
             wantToWatchLoadingStates={wantToWatchLoadingStates}
+            hasMoreMovies={hasMoreMovies}
+            isLoadingMore={isLoadingMore}
+            onLoadMore={loadMoreMovies}
           />
         )}
       </main>

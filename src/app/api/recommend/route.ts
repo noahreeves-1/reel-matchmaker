@@ -1,15 +1,34 @@
 import { generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { RatedMovie, WantToWatchMovie } from "@/types/movie";
+import { auth } from "@/auth";
+import { saveRecommendations } from "@/lib/db-utils";
 
-// RECOMMENDATION API: AI-powered movie recommendations
-// This API route generates personalized movie recommendations using OpenAI
+// RENDERING STRATEGY: Server-Side Rendering (SSR) with AI Processing
+// - This API route generates personalized movie recommendations using OpenAI GPT-4
+// - Uses server-side AI processing with external API calls to TMDB
+// - Benefits: Personalized recommendations, secure API key handling, real-time AI processing
+// - Perfect for: AI-powered content that requires user-specific data analysis
+// - Why SSR with AI? AI processing must happen server-side for security and performance
+//
+// REACT QUERY INTEGRATION:
+// - CLIENT-SIDE: React Query caches recommendations with 1-hour stale time
+// - PERSONALIZED: No server-side caching - each user gets unique recommendations
+// - EXPENSIVE OPERATION: AI processing is costly, so client-side caching is crucial
+// - BACKGROUND REFETCH: React Query keeps recommendations fresh with user data changes
+//
+// NEXT.JS OPTIMIZATIONS:
+// - Server-side AI processing with OpenAI SDK
+// - External API calls to TMDB for movie data enrichment
+// - No caching - recommendations are personalized and real-time
+// - Error handling and fallback mechanisms
+// - Type-safe interfaces for AI responses
 //
 // SCALING CONSIDERATIONS:
 // - TRADEOFFS: High latency (AI processing), expensive API calls, no caching
 // - VERCEL OPTIMIZATIONS: Edge functions, automatic scaling, global distribution
 // - SCALE BREAKERS: OpenAI rate limits, high costs, slow response times
-// - FUTURE IMPROVEMENTS: Add recommendation caching, batch processing, cost optimization
+// - FUTURE IMPROVEMENTS: Recommendation caching, batch processing, cost optimization
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
@@ -59,8 +78,8 @@ async function getMovieDetails(movieId: number): Promise<TMDBMovie | null> {
   }
 
   try {
-    // External API Call: This runs on the server, so it's secure
-    // The API key is never exposed to the client
+    // Server-side fetch to TMDB API for movie data enrichment
+    // The API key is never exposed to the client, ensuring security
     const response = await fetch(
       `${TMDB_BASE_URL}/movie/${movieId}?api_key=${apiKey}&language=en-US`,
       {
@@ -100,8 +119,8 @@ async function searchMovieByTitle(
   const cleanTitle = title.replace(/\s*\(\d{4}\)\s*$/, "").trim();
 
   try {
-    // External API Call: This runs on the server, so it's secure
-    // The API key is never exposed to the client
+    // Server-side fetch to TMDB API for movie data enrichment
+    // The API key is never exposed to the client, ensuring security
     const encodedQuery = encodeURIComponent(cleanTitle);
     const response = await fetch(
       `${TMDB_BASE_URL}/search/movie?api_key=${apiKey}&language=en-US&query=${encodedQuery}&page=1`,
@@ -196,7 +215,7 @@ interface AIRecommendation {
 
 // Function to create enhanced reason with social proof
 function createEnhancedReason(
-  movie: TMDBMovie & { personalizedReason?: string },
+  movie: TMDBMovie,
   matchLevel: string
   // _matchScore: number, // Unused parameter - keeping for future enhancement
   // _ratedMovies: RatedMovie[] // Unused parameter - keeping for future enhancement
@@ -210,9 +229,7 @@ function createEnhancedReason(
       : `$${(movie.revenue / 1000000).toFixed(0)}M`
     : "";
 
-  let reason = `**Why you'll ${matchLevel
-    .toLowerCase()
-    .replace(" ", " ")} it:** `;
+  let reason = "";
 
   // Create compelling reason based on available data
   if (movie.vote_average && movie.vote_average >= 8.0) {
@@ -239,14 +256,22 @@ function createEnhancedReason(
     reason += ` and it performed well at the box office (${revenue})`;
   }
 
-  // Add the AI-generated personalized reason
-  reason += `. ${movie.personalizedReason || ""}`;
-
   return reason;
 }
 
 export async function POST(req: Request) {
   try {
+    // Server-side authentication using NextAuth.js
+    const session = await auth();
+
+    if (!session?.user?.email) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const userEmail = session.user.email;
     const body = await req.json();
 
     const {
@@ -300,8 +325,8 @@ export async function POST(req: Request) {
       .map((movie: WantToWatchMovie) => movie.title)
       .join(", ");
 
-    // External API Call: This runs on the server, so it's secure
-    // The API key is never exposed to the client
+    // Server-side AI processing with OpenAI SDK
+    // The API key is never exposed to the client, ensuring security
     const { text } = await generateText({
       model: openai("gpt-4"),
       messages: [
@@ -328,7 +353,7 @@ The user has these movies in their want to watch list (movies they want to see):
 Please recommend 5 movies that the user would likely enjoy. For each recommendation, provide:
 1. The exact movie title (including the year if there are multiple movies with the same title)
 2. A brief reason why you're recommending it (1-2 sentences)
-3. A detailed, personalized reason that includes: what the movie is about, why it's interesting based on their taste, and what audiences/critics think about it (3-4 sentences)
+3. A detailed, personalized reason that includes: what the movie is about, why it's interesting based on their taste, what audiences/critics think about it, AND a sentence about how others who liked similar movies to the user's highly-rated films also enjoyed this movie (3-4 sentences total)
 
 IMPORTANT: Do NOT recommend any movies that the user has already rated or has in their want to watch list. The user has rated these movies: ${Array.from(
             ratedMovieKeys
@@ -343,11 +368,11 @@ Example format:
   {
     "title": "Movie Title",
     "reason": "This action-packed thriller shares similar themes and pacing to movies you rated highly.",
-    "personalizedReason": "This gripping psychological thriller follows a detective's descent into madness as he investigates a series of increasingly disturbing crimes. Given your love for complex character studies like The Dark Knight (10/10), you'll appreciate how this film explores the blurred lines between justice and obsession. Critics praised its atmospheric tension and mind-bending plot twists, with audiences calling it 'a masterclass in psychological suspense' that keeps you guessing until the very end."
+    "personalizedReason": "This gripping psychological thriller follows a detective's descent into madness as he investigates a series of increasingly disturbing crimes. Given your love for complex character studies like The Dark Knight (10/10), you'll appreciate how this film explores the blurred lines between justice and obsession. Critics praised its atmospheric tension and mind-bending plot twists, with audiences calling it 'a masterclass in psychological suspense' that keeps you guessing until the very end. Fans of The Dark Knight and other Christopher Nolan films consistently rate this movie highly, with many saying it captures the same intellectual depth and visual storytelling they love."
   }
 ]
 
-Make the personalizedReason informative and engaging. Include: 1) A brief plot summary, 2) Why it matches their taste based on their ratings, 3) What critics/audiences say about it. Be specific about the movie's content and appeal. Only recommend movies that are well-known and available on major streaming platforms. Do not include any text before or after the JSON array.`,
+Make the personalizedReason informative and engaging. Include: 1) A brief plot summary, 2) Why it matches their taste based on their ratings, 3) What critics/audiences say about it, 4) A natural sentence about how others who enjoyed similar movies to the user's highly-rated films also loved this movie. Be specific about the movie's content and appeal. Only recommend movies that are well-known and available on major streaming platforms. Do not include any text before or after the JSON array.`,
         },
       ],
       temperature: 0.8,
@@ -441,6 +466,26 @@ Make the personalizedReason informative and engaging. Include: 1) A brief plot s
 
     console.log("✅ API: Final recommendations:", recommendations);
     console.log("✅ API: Final recommendations count:", recommendations.length);
+
+    // Save recommendations to database for future reference and analytics
+    if (recommendations.length > 0) {
+      try {
+        const savedRecommendations = await saveRecommendations(
+          userEmail,
+          recommendations
+        );
+        console.log(
+          "💾 API: Saved recommendations to database:",
+          savedRecommendations.length
+        );
+      } catch (dbError) {
+        console.error(
+          "⚠️ API: Failed to save recommendations to database:",
+          dbError
+        );
+        // Don't fail the request if database save fails - recommendations are still returned
+      }
+    }
 
     return new Response(JSON.stringify(recommendations), {
       status: 200,

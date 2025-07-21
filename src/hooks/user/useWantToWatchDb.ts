@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { WantToWatchMovie } from "@/types/movie";
+import { WantToWatchMovie, WantToWatch } from "@/types/movie";
 import { useMovieDetailsBatch } from "../queries/useMovieDetails";
+import { handleApiError } from "@/lib/errorHandling";
 
 // WANT TO WATCH HOOK: Database-based watch list management
 // This hook manages user's want-to-watch list with PostgreSQL persistence via Drizzle
@@ -15,32 +16,20 @@ import { useMovieDetailsBatch } from "../queries/useMovieDetails";
 // CURRENT USAGE: Watch list management, movie details fetching, priority management
 // ARCHITECTURE: Database → API → React Query → Movie Details → UI Updates
 
-interface WantToWatchItem {
-  id: string;
-  userId: string;
-  movieId: number;
-  priority: number;
-  notes?: string;
-  movieTitle?: string;
-  posterPath?: string;
-  releaseDate?: string;
-  addedAt: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 interface ApiResponse {
   success: boolean;
-  wantToWatch?: WantToWatchItem[];
-  wantToWatchItem?: WantToWatchItem;
-  removedItem?: WantToWatchItem;
+  wantToWatch?: WantToWatch[];
+  wantToWatchItem?: WantToWatch;
+  removedItem?: WantToWatch;
   error?: string;
 }
 
 /**
  * Hook for managing user's want-to-watch list with database persistence
  */
-export const useWantToWatchDb = () => {
+export const useWantToWatchDb = (initialData?: {
+  wantToWatch: WantToWatch[];
+}) => {
   const { data: session, status } = useSession();
   const [wantToWatchList, setWantToWatchList] = useState<WantToWatchMovie[]>(
     []
@@ -64,6 +53,24 @@ export const useWantToWatchDb = () => {
       return;
     }
 
+    // If we have initial data, use it instead of making an API call
+    if (initialData?.wantToWatch && initialData.wantToWatch.length > 0) {
+      const convertedList: WantToWatchMovie[] = initialData.wantToWatch.map(
+        (item: WantToWatch) => ({
+          id: item.movieId,
+          title: item.movieTitle || `Movie ${item.movieId}`,
+          poster_path: item.posterPath || undefined,
+          release_date: item.releaseDate || undefined,
+          addedAt:
+            typeof item.addedAt === "string"
+              ? item.addedAt
+              : item.addedAt.toISOString(),
+        })
+      );
+      setWantToWatchList(convertedList);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -77,25 +84,28 @@ export const useWantToWatchDb = () => {
           (item) => ({
             id: item.movieId,
             title: item.movieTitle || `Movie ${item.movieId}`,
-            poster_path: item.posterPath,
-            release_date: item.releaseDate,
-            addedAt: item.addedAt,
+            poster_path: item.posterPath || undefined,
+            release_date: item.releaseDate || undefined,
+            addedAt:
+              typeof item.addedAt === "string"
+                ? item.addedAt
+                : item.addedAt.toISOString(),
           })
         );
         setWantToWatchList(convertedList);
       } else {
-        setError(data.error || "Failed to load want-to-watch list");
+        setError(
+          handleApiError(data.error || "Failed to load want-to-watch list")
+        );
         setWantToWatchList([]);
       }
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to load want-to-watch list"
-      );
+      setError(handleApiError(err));
       setWantToWatchList([]);
     } finally {
       setIsLoading(false);
     }
-  }, [session?.user?.email]);
+  }, [session?.user?.email, initialData]);
 
   const addToWantToWatch = async (
     movieId: number,
@@ -103,7 +113,9 @@ export const useWantToWatchDb = () => {
     notes?: string
   ) => {
     if (!session?.user?.email) {
-      setError("You must be logged in to add movies to your watch list");
+      setError(
+        handleApiError("You must be logged in to add movies to your watch list")
+      );
       return false;
     }
 
@@ -127,22 +139,24 @@ export const useWantToWatchDb = () => {
         await loadWantToWatchList();
         return true;
       } else {
-        setError(data.error || "Failed to add to want-to-watch list");
+        setError(
+          handleApiError(data.error || "Failed to add to want-to-watch list")
+        );
         return false;
       }
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to add to want-to-watch list"
-      );
+      setError(handleApiError(err));
       return false;
     }
   };
 
   const removeFromWantToWatch = async (movieId: number) => {
     if (!session?.user?.email) {
-      setError("You must be logged in to remove movies from your watch list");
+      setError(
+        handleApiError(
+          "You must be logged in to remove movies from your watch list"
+        )
+      );
       return false;
     }
 
@@ -160,15 +174,15 @@ export const useWantToWatchDb = () => {
         );
         return true;
       } else {
-        setError(data.error || "Failed to remove from want-to-watch list");
+        setError(
+          handleApiError(
+            data.error || "Failed to remove from want-to-watch list"
+          )
+        );
         return false;
       }
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to remove from want-to-watch list"
-      );
+      setError(handleApiError(err));
       return false;
     }
   };
@@ -195,6 +209,5 @@ export const useWantToWatchDb = () => {
     addToWantToWatch,
     removeFromWantToWatch,
     isInWantToWatch,
-    isAuthenticated: status === "authenticated",
   };
 };

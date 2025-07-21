@@ -11,7 +11,6 @@
 // API LIMITS: 1000 requests/day (free tier), consider upgrading for production
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
-const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
 
 export interface TMDBMovie {
   id: number;
@@ -107,15 +106,6 @@ export interface TMDBResponse {
   total_results: number;
 }
 
-export interface TMDBConfig {
-  images: {
-    base_url: string;
-    secure_base_url: string;
-    poster_sizes: string[];
-    backdrop_sizes: string[];
-  };
-}
-
 const getApiKey = (): string => {
   // Only use server-side API key for security
   const apiKey = process.env.TMDB_API_KEY || "";
@@ -162,33 +152,13 @@ export const searchMovies = async (
   query: string,
   page: number = 1
 ): Promise<TMDBResponse> => {
-  const encodedQuery = encodeURIComponent(query);
   return makeTMDBRequest<TMDBResponse>(
-    `/search/movie?query=${encodedQuery}&page=${page}`
+    `/search/movie?query=${encodeURIComponent(query)}&page=${page}`
   );
 };
 
 export const getMovieDetails = async (movieId: number): Promise<TMDBMovie> => {
-  return makeTMDBRequest<TMDBMovie>(`/movie/${movieId}`);
-};
-
-export const getConfiguration = async (): Promise<TMDBConfig> => {
-  return makeTMDBRequest<TMDBConfig>("/configuration");
-};
-
-// Utility functions for image URLs
-export const getPosterUrl = (
-  posterPath: string | null,
-  size: string = "w500"
-): string | null => {
-  if (!posterPath) return null;
-  return `${TMDB_IMAGE_BASE_URL}/${size}${posterPath}`;
-};
-
-export const getBackdropUrl = (
-  backdropPath: string | null,
-  size: string = "w1280"
-): string | null => {
-  if (!backdropPath) return null;
-  return `${TMDB_IMAGE_BASE_URL}/${size}${backdropPath}`;
+  return makeTMDBRequest<TMDBMovie>(
+    `/movie/${movieId}?append_to_response=credits,videos,images,release_dates`
+  );
 };

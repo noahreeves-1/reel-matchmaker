@@ -4,15 +4,26 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { RatedMovie, MovieRecommendation } from "@/types/movie";
 import { RatingModal } from "./RatingModal";
+import { LoadingAnimation } from "@/components/common";
 
-// RECOMMENDATIONS SECTION: AI-powered movie recommendations display
-// This component displays personalized movie recommendations with interactive features
-//
-// SCALING CONSIDERATIONS:
-// - TRADEOFFS: Expensive AI calls, no caching, client-side state management
-// - VERCEL OPTIMIZATIONS: Static hosting for UI, client-side processing
-// - SCALE BREAKERS: OpenAI rate limits, high costs, slow response times
-// - FUTURE IMPROVEMENTS: Add recommendation caching, batch processing, cost optimization
+// AI RECOMMENDATION LOADING STEPS: Custom steps for AI recommendation generation
+// More steps to cover the full 30-second duration and prevent cycling too fast
+const AI_RECOMMENDATION_STEPS = [
+  "Analyzing your movie ratings...",
+  "Understanding your taste preferences...",
+  "Exploring your watchlist patterns...",
+  "Finding similar movies you might love...",
+  "Searching through thousands of films...",
+  "Identifying hidden gems for you...",
+  "Generating personalized recommendations...",
+  "Adding detailed explanations...",
+  "Calculating match scores...",
+  "Gathering movie details...",
+  "Finalizing your recommendations...",
+  "Almost ready with your matches...",
+  "Preparing your personalized list...",
+  "Just a few more seconds...",
+];
 
 interface RecommendationsSectionProps {
   ratedMoviesCount: number;
@@ -190,7 +201,84 @@ export const RecommendationsSection = ({
           </button>
         </div>
 
-        {hasRecommendations && (
+        {isLoading && (
+          <LoadingAnimation
+            steps={AI_RECOMMENDATION_STEPS}
+            variant="purple"
+            timeEstimate="This usually takes 25-35 seconds"
+            estimatedDuration={30000} // 30 seconds in milliseconds
+            preventReset={true} // Prevent progress bar from resetting
+            showIcon={false} // Hide icon for AI recommendations
+          />
+        )}
+
+        {!isLoading && !hasRecommendations && ratedMoviesCount === 0 && (
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg p-8 border border-amber-200 dark:border-amber-700 text-center">
+            <div className="text-amber-500 mb-4">
+              <svg
+                className="w-16 h-16 mx-auto"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-amber-900 dark:text-amber-100 mb-2">
+              Rate Some Movies First
+            </h3>
+            <p className="text-amber-700 dark:text-amber-300 mb-4">
+              To get personalized AI recommendations, you need to rate at least
+              3 movies first. Scroll down to rate some movies you've watched.
+            </p>
+            <div className="flex items-center justify-center space-x-2 text-sm text-amber-600 dark:text-amber-400">
+              <span>⭐</span>
+              <span>Rate movies you've watched</span>
+              <span>•</span>
+              <span>🎯</span>
+              <span>Help AI understand your taste</span>
+              <span>•</span>
+              <span>🤖</span>
+              <span>Get personalized recommendations</span>
+            </div>
+          </div>
+        )}
+
+        {!isLoading && !hasRecommendations && ratedMoviesCount > 0 && (
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-8 border border-blue-200 dark:border-blue-700 text-center">
+            <div className="text-blue-500 mb-4">
+              <svg
+                className="w-16 h-16 mx-auto"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-100 mb-2">
+              Ready for AI Recommendations!
+            </h3>
+            <p className="text-blue-700 dark:text-blue-300 mb-4">
+              You've rated {ratedMoviesCount} movies. Click the button above to
+              get personalized AI recommendations based on your taste.
+            </p>
+            <div className="flex items-center justify-center space-x-2 text-sm text-blue-600 dark:text-blue-400">
+              <span>🤖</span>
+              <span>AI will analyze your preferences</span>
+              <span>•</span>
+              <span>🎯</span>
+              <span>Find movies you'll love</span>
+              <span>•</span>
+              <span>⚡</span>
+              <span>Takes about 10-15 seconds</span>
+            </div>
+          </div>
+        )}
+
+        {!isLoading && hasRecommendations && (
           <div>
             <div className="space-y-6">
               {recommendations.map((rec, index) => {
@@ -341,22 +429,35 @@ export const RecommendationsSection = ({
                           </div>
                         )}
 
-                        {/* Enhanced Recommendation Reason */}
-                        {rec.enhancedReason ? (
-                          <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                            {rec.enhancedReason
-                              .split("\n")
-                              .map((line: string, i: number) => (
-                                <p key={i} className="mb-2">
-                                  {line.replace(/\*\*(.*?)\*\*/g, "$1")}
-                                </p>
-                              ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                            {rec.reason}
-                          </p>
-                        )}
+                        {/* Recommendation Reasons */}
+                        <div className="space-y-3">
+                          {/* Enhanced Reason (Social Proof) */}
+                          {rec.enhancedReason && (
+                            <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                              {rec.enhancedReason
+                                .split("\n")
+                                .map((line: string, i: number) => (
+                                  <p key={i} className="mb-1">
+                                    {line.replace(/\*\*(.*?)\*\*/g, "$1")}
+                                  </p>
+                                ))}
+                            </div>
+                          )}
+
+                          {/* Personalized Reason (AI-generated detailed explanation) */}
+                          {rec.personalizedReason && (
+                            <div className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+                              <p>{rec.personalizedReason}</p>
+                            </div>
+                          )}
+
+                          {/* Fallback to basic reason if neither enhanced nor personalized exists */}
+                          {!rec.enhancedReason && !rec.personalizedReason && (
+                            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                              {rec.reason}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

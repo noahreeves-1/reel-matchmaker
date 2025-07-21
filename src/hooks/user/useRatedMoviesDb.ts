@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { RatedMovie } from "@/types/movie";
+import { RatedMovie, UserRating } from "@/types/movie";
 import { useMovieDetailsBatch } from "../queries/useMovieDetails";
+import { handleApiError } from "@/lib/errorHandling";
 
 // RATED MOVIES HOOK: Database-based user rating management
 // This hook manages user's rated movies with PostgreSQL persistence via Drizzle
@@ -18,17 +19,6 @@ import { useMovieDetailsBatch } from "../queries/useMovieDetails";
 // PERFORMANCE: Uses batch queries with stable keys to prevent unnecessary refetches
 // The query key uses a hash of sorted IDs for consistent caching
 
-interface UserRating {
-  id: string;
-  userId: string;
-  movieId: number;
-  rating: number;
-  notes?: string;
-  ratedAt: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 interface ApiResponse {
   success: boolean;
   ratings?: UserRating[];
@@ -39,7 +29,7 @@ interface ApiResponse {
 /**
  * Hook for managing user's rated movies with database persistence
  */
-export const useRatedMoviesDb = () => {
+export const useRatedMoviesDb = (initialData?: { ratings: UserRating[] }) => {
   const { data: session, status } = useSession();
   const [ratedMovies, setRatedMovies] = useState<RatedMovie[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -70,6 +60,23 @@ export const useRatedMoviesDb = () => {
       return;
     }
 
+    // If we have initial data, use it instead of making an API call
+    if (initialData?.ratings && initialData.ratings.length > 0) {
+      const convertedRatedMovies: RatedMovie[] = initialData.ratings.map(
+        (rating: UserRating) => ({
+          id: rating.movieId,
+          title: `Movie ${rating.movieId}`, // Placeholder title, will be filled by movieDetails
+          rating: rating.rating,
+          ratedAt:
+            typeof rating.ratedAt === "string"
+              ? rating.ratedAt
+              : rating.ratedAt.toISOString(),
+        })
+      );
+      setRatedMovies(convertedRatedMovies);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -84,23 +91,24 @@ export const useRatedMoviesDb = () => {
             id: rating.movieId,
             title: `Movie ${rating.movieId}`, // Placeholder title, will be filled by movieDetails
             rating: rating.rating,
-            ratedAt: rating.ratedAt,
+            ratedAt:
+              typeof rating.ratedAt === "string"
+                ? rating.ratedAt
+                : rating.ratedAt.toISOString(),
           })
         );
         setRatedMovies(convertedRatedMovies);
       } else {
-        setError(data.error || "Failed to load rated movies");
+        setError(handleApiError(data.error || "Failed to load rated movies"));
         setRatedMovies([]);
       }
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to load rated movies"
-      );
+      setError(handleApiError(err));
       setRatedMovies([]);
     } finally {
       setIsLoading(false);
     }
-  }, [session?.user?.email]);
+  }, [session?.user?.email, initialData]);
 
   const saveRating = async (
     movieId: number,
@@ -108,7 +116,7 @@ export const useRatedMoviesDb = () => {
     notes?: string
   ) => {
     if (!session?.user?.email) {
-      setError("You must be logged in to rate movies");
+      setError(handleApiError("You must be logged in to rate movies"));
       return false;
     }
 
@@ -132,18 +140,18 @@ export const useRatedMoviesDb = () => {
         await loadRatedMovies();
         return true;
       } else {
-        setError(data.error || "Failed to save rating");
+        setError(handleApiError(data.error || "Failed to save rating"));
         return false;
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save rating");
+      setError(handleApiError(err));
       return false;
     }
   };
 
   const removeRating = async (movieId: number) => {
     if (!session?.user?.email) {
-      setError("You must be logged in to remove ratings");
+      setError(handleApiError("You must be logged in to remove ratings"));
       return false;
     }
 
@@ -159,11 +167,11 @@ export const useRatedMoviesDb = () => {
         setRatedMovies((prev) => prev.filter((movie) => movie.id !== movieId));
         return true;
       } else {
-        setError(data.error || "Failed to remove rating");
+        setError(handleApiError(data.error || "Failed to remove rating"));
         return false;
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to remove rating");
+      setError(handleApiError(err));
       return false;
     }
   };
@@ -212,6 +220,5 @@ export const useRatedMoviesDb = () => {
     loadRatedMovies,
     saveRating,
     removeRating,
-    isAuthenticated: status === "authenticated",
   };
 };

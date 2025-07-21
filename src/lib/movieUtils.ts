@@ -2,24 +2,6 @@
 // This file provides utility functions for working with movie data
 
 /**
- * Format movie release date for display
- */
-export const formatReleaseDate = (dateString: string): string => {
-  if (!dateString) return "Unknown";
-
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  } catch {
-    return "Unknown";
-  }
-};
-
-/**
  * Get movie poster URL with fallback
  */
 export const getPosterUrl = (
@@ -30,13 +12,6 @@ export const getPosterUrl = (
     return "/placeholder-poster.jpg"; // You'll need to add this image
   }
   return `https://image.tmdb.org/t/p/${size}${posterPath}`;
-};
-
-/**
- * Format movie rating for display
- */
-export const formatRating = (rating: number): string => {
-  return rating.toFixed(1);
 };
 
 /**
@@ -53,17 +28,6 @@ export const formatRuntime = (minutes: number): string => {
   } else {
     return `${hours}h ${remainingMinutes}m`;
   }
-};
-
-/**
- * Check if a movie is recent (released in the last 2 years)
- */
-export const isRecentMovie = (releaseDate: string): boolean => {
-  const twoYearsAgo = new Date();
-  twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
-
-  const movieDate = new Date(releaseDate);
-  return movieDate > twoYearsAgo;
 };
 
 /**

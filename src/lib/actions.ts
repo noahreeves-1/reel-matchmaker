@@ -1,21 +1,11 @@
-"use server";
+// SERVER ACTIONS: Next.js server actions for form handling
+// This file is reserved for server actions that can be used for form submissions
+// Currently, authentication is handled client-side with NextAuth.js
+// Server actions can be added here for other form handling needs
 
-import { signIn } from "@/auth";
-import { AuthError } from "next-auth";
-
-// AUTHENTICATION ACTIONS: Server actions for handling login/logout
-// These functions handle form submissions and error management for auth flows
-
-export async function authenticate(
-  _prevState: string | undefined,
-  formData: FormData
-) {
-  try {
-    await signIn("credentials", formData);
-  } catch (err) {
-    if (err instanceof AuthError && err.type === "CredentialsSignin") {
-      return "Invalid credentials.";
-    }
-    return "Something went wrong.";
-  }
-}
+// Example server action structure:
+// "use server";
+//
+// export async function handleFormAction(formData: FormData) {
+//   // Server-side form processing
+// }

@@ -1,13 +1,14 @@
 import Image from "next/image";
 import { TMDBMovie } from "@/lib/tmdb";
-import { getBackdropUrl } from "@/lib/tmdb";
 
 interface MovieHeroProps {
   movie: TMDBMovie;
 }
 
 export const MovieHero = ({ movie }: MovieHeroProps) => {
-  const backdropUrl = getBackdropUrl(movie.backdrop_path, "w1280");
+  const backdropUrl = movie.backdrop_path
+    ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`
+    : null;
 
   if (!backdropUrl) return null;
 

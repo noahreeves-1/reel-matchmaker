@@ -8,10 +8,11 @@ export { MovieApp } from "./MovieApp";
 export { MovieSidebar } from "./MovieSidebar";
 export { MovieTrailers } from "./MovieTrailers";
 export { MyMoviesPage } from "./MyMoviesPage";
+export { MyMoviesPageServer } from "./MyMoviesPageServer";
 export { RatingModal } from "./RatingModal";
 export { RecommendationsSection } from "./RecommendationsSection";
+export { InstructionsSection } from "./InstructionsSection";
 export { MovieSearch } from "./MovieSearch";
-export { MovieSearchStandalone } from "./MovieSearchStandalone";
 
 // Re-export layout and common components
 export { Header, Hero, Footer } from "@/components/layout";

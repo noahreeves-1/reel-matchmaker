@@ -12,12 +12,17 @@ import {
 } from "@/components/movies";
 import { useRatedMoviesDb } from "@/hooks/user/useRatedMoviesDb";
 import { useWantToWatchDb } from "@/hooks/user/useWantToWatchDb";
-import { WantToWatchMovie } from "@/types/movie";
+import { WantToWatchMovie, UserInitialData } from "@/types/movie";
 import { TMDBMovie } from "@/lib/tmdb";
 
 // MY MOVIES PAGE: User's personal movie collection management
 // This component displays and manages user's rated movies and want-to-watch list
-export const MyMoviesPage = () => {
+interface MyMoviesPageProps {
+  initialData?: UserInitialData;
+}
+
+export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
+  // Using initialData from SSR to avoid unnecessary API calls
   const [activeTab, setActiveTab] = useState<"rated" | "wishlist">("rated");
 
   // Add client-side only state to prevent hydration mismatches
@@ -32,7 +37,7 @@ export const MyMoviesPage = () => {
     movie: null,
   });
 
-  // Database-based hooks
+  // Database-based hooks with initial data from SSR
   const {
     ratedMovies,
     movieDetails,
@@ -44,14 +49,14 @@ export const MyMoviesPage = () => {
     handleRemoveRating,
     loadRatedMovies,
     saveRating,
-  } = useRatedMoviesDb();
+  } = useRatedMoviesDb(initialData);
 
   const {
     wantToWatchList,
     addToWantToWatch,
     removeFromWantToWatch,
     isInWantToWatch,
-  } = useWantToWatchDb();
+  } = useWantToWatchDb(initialData);
 
   // Set client flag after hydration
   useEffect(() => {

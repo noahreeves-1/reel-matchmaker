@@ -1,19 +1,43 @@
-"use client";
+import { MyMoviesPageServer } from "@/components/movies/MyMoviesPageServer";
+import { getUserRatedMovies } from "@/lib/server-only";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 
-import { MyMoviesPage } from "@/components/movies/MyMoviesPage";
-
-// RENDERING STRATEGY: Client-Side Rendering (CSR)
-// - This page is rendered entirely on the client side
-// - No server-side data fetching or pre-rendering
-// - Benefits: Always shows latest user data, interactive features
-// - Perfect for: User-specific pages that depend on localStorage data
-// - Why CSR? User's rated movies are stored in localStorage
+// RENDERING STRATEGY: Server-Side Rendering (SSR)
+// - This page is rendered on the server for each request
+// - Server-side data fetching for user-specific content
+// - Benefits: Fast initial load, good SEO, server-side authentication
+// - Perfect for: User-specific pages that require fresh data
+// - Why SSR? User data needs to be fetched server-side for security and performance
 //
 // SCALING CONSIDERATIONS:
-// - TRADEOFFS: No SEO, slower initial load, data loss if localStorage is cleared
-// - VERCEL OPTIMIZATIONS: Static hosting, CDN caching for assets, client-side processing
-// - SCALE BREAKERS: localStorage size limits, no cross-device sync, no backup
-// - FUTURE IMPROVEMENTS: Add PostgreSQL + auth, server-side user data, cross-device sync, so we need client-side access
-export default function MyMovies() {
-  return <MyMoviesPage />;
+// - TRADEOFFS: Server-side processing, no caching, authentication complexity
+// - VERCEL OPTIMIZATIONS: Serverless functions, edge caching, automatic scaling
+// - SCALE BREAKERS: High concurrent users, database connection limits
+// - FUTURE IMPROVEMENTS: Add caching, optimistic updates, real-time sync
+
+// Generate metadata for SEO
+export const metadata = {
+  title: "My Movies - Reel Matchmaker",
+  description: "Your personal movie collection with ratings and watchlist",
+  keywords: ["my movies", "ratings", "watchlist", "personal", "collection"],
+};
+
+/**
+ * My Movies page component
+ * Uses SSR for optimal performance and security
+ * User data is fetched server-side, interactivity handled by client component
+ */
+export default async function MyMoviesPage() {
+  // Server-side authentication check
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  // Server-side data fetching
+  const userData = await getUserRatedMovies();
+
+  return <MyMoviesPageServer initialData={userData} />;
 }

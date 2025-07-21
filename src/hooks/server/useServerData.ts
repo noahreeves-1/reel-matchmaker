@@ -86,3 +86,50 @@ export const getMovieData = async (
     return null;
   }
 };
+
+/**
+ * Server-side function for fetching movie details for user's rated movies
+ * Used in Server Components for SSR
+ */
+export const getUserMovieDetails = async (movieIds: number[]) => {
+  if (movieIds.length === 0) return {};
+
+  try {
+    const apiKey = process.env.TMDB_API_KEY;
+    if (!apiKey) {
+      throw new Error("TMDB API key not configured");
+    }
+
+    // Fetch movie details for all user's rated movies
+    const movieDetailsPromises = movieIds.map(async (movieId) => {
+      const response = await fetch(
+        `${TMDB_BASE_URL}/movie/${movieId}?api_key=${apiKey}&language=en-US`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        return await response.json();
+      }
+      return null;
+    });
+
+    const movieDetails = await Promise.all(movieDetailsPromises);
+
+    // Create a map of movie ID to movie details
+    const movieDetailsMap: Record<number, TMDBMovie> = {};
+    movieDetails.forEach((movie) => {
+      if (movie) {
+        movieDetailsMap[movie.id] = movie;
+      }
+    });
+
+    return movieDetailsMap;
+  } catch (error) {
+    console.error("Failed to fetch user movie details:", error);
+    return {};
+  }
+};

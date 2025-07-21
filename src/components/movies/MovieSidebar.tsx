@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { TMDBMovie } from "@/lib/tmdb";
-import { getPosterUrl } from "@/lib/tmdb";
-import { formatRuntime } from "@/lib/movieUtils";
+import { getPosterUrl, formatRuntime } from "@/lib/movieUtils";
 
 interface MovieSidebarProps {
   movie: TMDBMovie;

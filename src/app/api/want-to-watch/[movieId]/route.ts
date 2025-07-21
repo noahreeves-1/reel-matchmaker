@@ -2,18 +2,40 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { removeFromWantToWatch, addToWantToWatch } from "@/lib/db-utils";
 
+// RENDERING STRATEGY: Server-Side Rendering (SSR) with Dynamic Routes
+// - This API route handles individual movie want-to-watch operations with dynamic parameters
+// - Uses NextAuth.js server-side authentication and dynamic parameter validation
+// - Benefits: Secure per-movie operations, database persistence, real-time updates
+// - Perfect for: Individual movie watch list operations (add, check, remove)
+// - Why SSR with dynamic routes? Each watch list operation is user-specific and secure
+//
+// NEXT.JS OPTIMIZATIONS:
+// - Dynamic route parameter handling with proper validation
+// - Server-side authentication with NextAuth.js
+// - Database operations with Drizzle ORM
+// - Input validation and type conversion
+// - No caching - user data must be real-time
+//
+// SCALING CONSIDERATIONS:
+// - TRADEOFFS: Database queries vs. real-time data accuracy
+// - VERCEL OPTIMIZATIONS: Serverless functions, database connection pooling
+// - SCALE BREAKERS: Database connection limits, authentication overhead
+// - FUTURE IMPROVEMENTS: Redis caching, database indexing, batch operations
+
 // POST /api/want-to-watch/[movieId] - Add a movie to want-to-watch list
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ movieId: string }> }
 ) {
   try {
+    // Server-side authentication using NextAuth.js
     const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Dynamic route parameter extraction and validation
     const { movieId: movieIdParam } = await params;
     const movieId = parseInt(movieIdParam);
 
@@ -25,6 +47,8 @@ export async function POST(
     const { movieTitle, posterPath, releaseDate } = body;
 
     const userEmail = session.user.email;
+
+    // Add movie to user's want-to-watch list with default priority
     const addedItem = await addToWantToWatch(
       userEmail,
       movieId,
@@ -66,12 +90,14 @@ export async function GET(
   { params }: { params: Promise<{ movieId: string }> }
 ) {
   try {
+    // Server-side authentication using NextAuth.js
     const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Dynamic route parameter extraction and validation
     const { movieId: movieIdParam } = await params;
     const movieId = parseInt(movieIdParam);
 
@@ -81,7 +107,7 @@ export async function GET(
 
     const userEmail = session.user.email;
 
-    // Get user by email first
+    // Dynamic import for database utility functions
     const { getUserByEmail, isInWantToWatch } = await import("@/lib/db-utils");
     const user = await getUserByEmail(userEmail);
 
@@ -89,7 +115,7 @@ export async function GET(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Check if movie is in want-to-watch list
+    // Check if movie is in user's want-to-watch list
     const isInList = await isInWantToWatch(user.id, movieId);
 
     if (!isInList) {
@@ -123,12 +149,14 @@ export async function DELETE(
   { params }: { params: Promise<{ movieId: string }> }
 ) {
   try {
+    // Server-side authentication using NextAuth.js
     const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Dynamic route parameter extraction and validation
     const { movieId: movieIdParam } = await params;
     const movieId = parseInt(movieIdParam);
 
@@ -137,6 +165,8 @@ export async function DELETE(
     }
 
     const userEmail = session.user.email;
+
+    // Remove movie from user's want-to-watch list
     const removedItem = await removeFromWantToWatch(userEmail, movieId);
 
     if (!removedItem) {

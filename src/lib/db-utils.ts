@@ -1,26 +1,17 @@
 import { db } from "@/db/drizzle";
-import { users, movies, userRatings, wantToWatch } from "@/db/schema";
+import {
+  users,
+  movies,
+  userRatings,
+  wantToWatch,
+  recommendations,
+} from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 
 /**
  * Database utility functions for common operations
  * These will replace localStorage functionality step by step
  */
-
-// User operations
-export async function getUserById(userId: string) {
-  try {
-    const user = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
-    return user[0] || null;
-  } catch (error) {
-    console.error("Error fetching user:", error);
-    return null;
-  }
-}
 
 export async function getUserByEmail(email: string) {
   try {
@@ -32,79 +23,6 @@ export async function getUserByEmail(email: string) {
     return user[0] || null;
   } catch (error) {
     console.error("Error fetching user by email:", error);
-    return null;
-  }
-}
-
-// Movie operations
-export async function getMovieById(movieId: number) {
-  try {
-    const movie = await db
-      .select()
-      .from(movies)
-      .where(eq(movies.id, movieId))
-      .limit(1);
-    return movie[0] || null;
-  } catch (error) {
-    console.error("Error fetching movie:", error);
-    return null;
-  }
-}
-
-export async function saveMovie(movieData: {
-  id: number;
-  title: string;
-  overview?: string;
-  posterPath?: string;
-  backdropPath?: string;
-  releaseDate?: string;
-  voteAverage?: number;
-  voteCount?: number;
-  popularity?: number;
-  runtime?: number;
-  status?: string;
-  tagline?: string;
-  budget?: number;
-  revenue?: number;
-  genres?: Array<{ id: number; name: string }>;
-  productionCompanies?: Array<{
-    id: number;
-    name: string;
-    logoPath: string | null;
-    originCountry: string;
-  }>;
-}) {
-  try {
-    // Use upsert to insert or update movie data
-    const result = await db
-      .insert(movies)
-      .values(movieData)
-      .onConflictDoUpdate({
-        target: movies.id,
-        set: {
-          title: movieData.title,
-          overview: movieData.overview,
-          posterPath: movieData.posterPath,
-          backdropPath: movieData.backdropPath,
-          releaseDate: movieData.releaseDate,
-          voteAverage: movieData.voteAverage,
-          voteCount: movieData.voteCount,
-          popularity: movieData.popularity,
-          runtime: movieData.runtime,
-          status: movieData.status,
-          tagline: movieData.tagline,
-          budget: movieData.budget,
-          revenue: movieData.revenue,
-          genres: movieData.genres,
-          productionCompanies: movieData.productionCompanies,
-          lastUpdated: new Date(),
-        },
-      })
-      .returning();
-
-    return result[0];
-  } catch (error) {
-    console.error("Error saving movie:", error);
     return null;
   }
 }
@@ -356,6 +274,126 @@ export async function getWantToWatchList(userEmail: string) {
     return list;
   } catch (error) {
     console.error("Error fetching want to watch list:", error);
+    return [];
+  }
+}
+
+// Recommendation operations (will save AI-generated recommendations to database)
+export async function saveRecommendations(
+  userEmail: string,
+  recommendationData: Array<{
+    id: number;
+    title: string;
+    reason: string;
+    personalizedReason: string;
+    matchScore?: number;
+    matchLevel?: "LOVE IT" | "LIKE IT" | "MAYBE" | "RISKY";
+    enhancedReason?: string;
+    posterPath?: string | null;
+    releaseDate?: string;
+  }>
+) {
+  try {
+    // First get the user by email
+    const user = await getUserByEmail(userEmail);
+    if (!user) return [];
+
+    const savedRecommendations = [];
+
+    for (const rec of recommendationData) {
+      // Check if movie exists, if not create a placeholder movie
+      const existingMovie = await db
+        .select()
+        .from(movies)
+        .where(eq(movies.id, rec.id))
+        .limit(1);
+
+      if (!existingMovie[0]) {
+        // Create a placeholder movie for the recommendation
+        await db.insert(movies).values({
+          id: rec.id,
+          title: rec.title,
+          overview: "Movie created for recommendation",
+          posterPath: rec.posterPath,
+          releaseDate: rec.releaseDate,
+          lastUpdated: new Date(),
+        });
+      }
+
+      // Check if recommendation already exists for this user and movie
+      const existingRecommendation = await db
+        .select()
+        .from(recommendations)
+        .where(
+          and(
+            eq(recommendations.userId, user.id),
+            eq(recommendations.movieId, rec.id)
+          )
+        )
+        .limit(1);
+
+      if (existingRecommendation[0]) {
+        // Update existing recommendation
+        const result = await db
+          .update(recommendations)
+          .set({
+            reason: rec.reason,
+            personalizedReason: rec.personalizedReason,
+            matchScore: rec.matchScore,
+            matchLevel: rec.matchLevel,
+            enhancedReason: rec.enhancedReason,
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(recommendations.userId, user.id),
+              eq(recommendations.movieId, rec.id)
+            )
+          )
+          .returning();
+
+        savedRecommendations.push(result[0]);
+      } else {
+        // Create new recommendation
+        const result = await db
+          .insert(recommendations)
+          .values({
+            userId: user.id,
+            movieId: rec.id,
+            reason: rec.reason,
+            personalizedReason: rec.personalizedReason,
+            matchScore: rec.matchScore,
+            matchLevel: rec.matchLevel,
+            enhancedReason: rec.enhancedReason,
+          })
+          .returning();
+
+        savedRecommendations.push(result[0]);
+      }
+    }
+
+    return savedRecommendations;
+  } catch (error) {
+    console.error("Error saving recommendations:", error);
+    return [];
+  }
+}
+
+export async function getUserRecommendations(userEmail: string) {
+  try {
+    // First get the user by email
+    const user = await getUserByEmail(userEmail);
+    if (!user) return [];
+
+    const userRecommendations = await db
+      .select()
+      .from(recommendations)
+      .where(eq(recommendations.userId, user.id))
+      .orderBy(recommendations.generatedAt);
+
+    return userRecommendations;
+  } catch (error) {
+    console.error("Error fetching user recommendations:", error);
     return [];
   }
 }

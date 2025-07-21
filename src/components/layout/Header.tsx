@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
+import Image from "next/image";
 
 // HEADER COMPONENT: Main navigation and branding with authentication
 // This component provides the top navigation bar with branding, links, and conditional auth
@@ -36,20 +37,29 @@ export const Header = () => {
         <div className="flex justify-between items-center h-16">
           <Link
             href="/"
-            className="flex items-center hover:opacity-80 transition-opacity"
+            className="flex items-center hover:opacity-80 transition-opacity cursor-pointer"
           >
-            <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center mr-3">
-              <span className="text-white font-bold text-sm">RM</span>
-            </div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white">
+            <Image
+              src="/reel-matchmaker-icon.png"
+              alt="Reel Matchmaker"
+              width={40}
+              height={40}
+            />
+            <h1 className="ml-2 text-xl font-bold text-slate-900 dark:text-white">
               Reel Matchmaker
             </h1>
           </Link>
 
           <nav className="flex items-center space-x-8">
             <Link
+              href="/"
+              className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+            >
+              Discover
+            </Link>
+            <Link
               href="/my-movies"
-              className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
+              className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             >
               My Movies
             </Link>
@@ -112,13 +122,13 @@ export const Header = () => {
                 <>
                   <Link
                     href="/login"
-                    className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-2 rounded-md text-sm font-medium"
+                    className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-2 rounded-md text-sm font-medium cursor-pointer"
                   >
                     Sign In
                   </Link>
                   <Link
                     href="/register"
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
                   >
                     Create Account
                   </Link>

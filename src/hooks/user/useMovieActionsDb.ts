@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { TMDBMovie } from "@/lib/tmdb";
+import { handleApiError } from "@/lib/errorHandling";
 
 // DATABASE-BACKED MOVIE ACTIONS HOOK: User interactions with movies
 // This hook manages user actions like rating movies and managing watch lists
@@ -11,8 +12,7 @@ export const useMovieActionsDb = () => {
   const rateMovie = useCallback(
     async (movie: TMDBMovie, rating: number) => {
       if (!session?.user?.email) {
-        console.error("No user session found");
-        return;
+        throw new Error(handleApiError("No user session found"));
       }
 
       try {
@@ -39,82 +39,34 @@ export const useMovieActionsDb = () => {
         // This ensures that once a user rates a movie, it's considered "watched"
         // and should be removed from their want-to-watch list
         try {
-          const isInList = await isInWantToWatch(movie.id);
-          if (isInList) {
-            await removeFromWantToWatch(movie.id);
+          const checkResponse = await fetch(`/api/want-to-watch/${movie.id}`);
+          if (checkResponse.ok) {
+            await fetch(`/api/want-to-watch/${movie.id}`, {
+              method: "DELETE",
+            });
           }
         } catch {
           // Ignore errors when checking/removing from want-to-watch list
           // The rating was successful, so we don't want to fail the whole operation
         }
       } catch (error) {
-        console.error("Error rating movie:", error);
-        throw error;
+        throw new Error(handleApiError(error));
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [session?.user?.email]
   );
 
-  const removeRating = useCallback(
-    async (movieId: number) => {
-      if (!session?.user?.email) {
-        console.error("No user session found");
-        return;
-      }
-
-      try {
-        const response = await fetch(`/api/user-ratings/${movieId}`, {
-          method: "DELETE",
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to remove rating: ${response.statusText}`);
-        }
-      } catch (error) {
-        console.error("Error removing rating:", error);
-        throw error;
-      }
-    },
-    [session?.user?.email]
-  );
-
-  const getRating = useCallback(
-    async (movieId: number): Promise<number | null> => {
-      if (!session?.user?.email) {
-        return null;
-      }
-
-      try {
-        const response = await fetch(`/api/user-ratings/${movieId}`);
-
-        if (!response.ok) {
-          if (response.status === 404) {
-            return null; // No rating found
-          }
-          throw new Error(`Failed to get rating: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        return data.rating;
-      } catch (error) {
-        console.error("Error getting rating:", error);
-        return null;
-      }
-    },
-    [session?.user?.email]
-  );
-
   const toggleWantToWatch = useCallback(
     async (movie: TMDBMovie) => {
       if (!session?.user?.email) {
-        console.error("No user session found");
-        return;
+        throw new Error(handleApiError("No user session found"));
       }
 
       try {
         // First check if the movie is already in the want-to-watch list
-        const isInList = await isInWantToWatch(movie.id);
+        const checkResponse = await fetch(`/api/want-to-watch/${movie.id}`);
+        const isInList = checkResponse.ok;
 
         if (isInList) {
           // Movie is in list, remove it
@@ -148,60 +100,7 @@ export const useMovieActionsDb = () => {
           }
         }
       } catch (error) {
-        console.error("Error toggling want-to-watch:", error);
-        throw error;
-      }
-    },
-    [session?.user?.email]
-  );
-
-  const removeFromWantToWatch = useCallback(
-    async (movieId: number) => {
-      if (!session?.user?.email) {
-        console.error("No user session found");
-        return;
-      }
-
-      try {
-        const response = await fetch(`/api/want-to-watch/${movieId}`, {
-          method: "DELETE",
-        });
-
-        if (!response.ok) {
-          throw new Error(
-            `Failed to remove from want-to-watch: ${response.statusText}`
-          );
-        }
-      } catch (error) {
-        console.error("Error removing from want-to-watch:", error);
-        throw error;
-      }
-    },
-    [session?.user?.email]
-  );
-
-  const isInWantToWatch = useCallback(
-    async (movieId: number): Promise<boolean> => {
-      if (!session?.user?.email) {
-        return false;
-      }
-
-      try {
-        const response = await fetch(`/api/want-to-watch/${movieId}`);
-
-        if (!response.ok) {
-          if (response.status === 404) {
-            return false; // Not in want-to-watch list
-          }
-          throw new Error(
-            `Failed to check want-to-watch: ${response.statusText}`
-          );
-        }
-
-        return true; // Movie is in want-to-watch list
-      } catch (error) {
-        console.error("Error checking want-to-watch:", error);
-        return false;
+        throw new Error(handleApiError(error));
       }
     },
     [session?.user?.email]
@@ -209,10 +108,6 @@ export const useMovieActionsDb = () => {
 
   return {
     rateMovie,
-    removeRating,
-    getRating,
     toggleWantToWatch,
-    removeFromWantToWatch,
-    isInWantToWatch,
   };
 };

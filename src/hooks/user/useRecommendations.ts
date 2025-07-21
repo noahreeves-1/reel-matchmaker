@@ -1,16 +1,18 @@
 import { useState } from "react";
-import { MovieRecommendation } from "@/types/movie";
-import { useRatedMoviesDb } from "./useRatedMoviesDb";
-import { useWantToWatchDb } from "./useWantToWatchDb";
+import {
+  MovieRecommendation,
+  RatedMovie,
+  WantToWatchMovie,
+} from "@/types/movie";
+import { handleApiError } from "@/lib/errorHandling";
 
 // useRecommendations Hook: Manages AI-powered movie recommendations
 // This hook encapsulates all the logic for generating and managing recommendations
-// It integrates with the user's rated movies and want-to-watch list
-export const useRecommendations = () => {
-  // Database Integration: Read user data from database
-  const { ratedMovies } = useRatedMoviesDb();
-  const { wantToWatchList } = useWantToWatchDb();
-
+// It accepts rated movies and want-to-watch list as parameters to ensure consistency
+export const useRecommendations = (
+  ratedMovies: RatedMovie[] = [],
+  wantToWatchList: WantToWatchMovie[] = []
+) => {
   // Local State: Manage recommendations and loading state
   // This state is specific to this hook and doesn't persist
   const [recommendations, setRecommendations] = useState<MovieRecommendation[]>(
@@ -45,7 +47,9 @@ export const useRecommendations = () => {
         const errorData = await response.json();
         // Custom Error: Use our error handling system for better debugging
         throw new Error(
-          errorData.error || "Failed to generate recommendations"
+          handleApiError(
+            errorData.error || "Failed to generate recommendations"
+          )
         );
       }
 
@@ -54,7 +58,7 @@ export const useRecommendations = () => {
     } catch (error) {
       // Error Propagation: Re-throw errors to be handled by the component
       // This allows components to show user-friendly error messages
-      throw error;
+      throw new Error(handleApiError(error));
     } finally {
       // Cleanup: Always reset loading state, even if there's an error
       setIsGeneratingRecommendations(false);
@@ -65,7 +69,5 @@ export const useRecommendations = () => {
     recommendations,
     isGeneratingRecommendations,
     generateRecommendations,
-    ratedMoviesCount: ratedMovies.length,
-    wantToWatchCount: wantToWatchList.length,
   };
 };

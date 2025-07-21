@@ -62,28 +62,3 @@ export const getMovieDetails = async (movieId: number): Promise<TMDBMovie> => {
   const data = await response.json();
   return data;
 };
-
-/**
- * Utility function to invalidate Next.js cache for a specific movie
- * This can be called when you need to refresh movie data
- */
-export const invalidateMovieCache = async (movieId: number): Promise<void> => {
-  try {
-    // Call the revalidate API route (you'll need to create this)
-    await fetch(`/api/revalidate?tag=movie-${movieId}`, { method: "POST" });
-  } catch (error) {
-    console.warn("Failed to invalidate movie cache:", error);
-  }
-};
-
-/**
- * Utility function to prefetch movie details for better UX
- */
-export const prefetchMovieDetails = async (movieId: number): Promise<void> => {
-  try {
-    // Prefetch the movie details
-    await getMovieDetails(movieId);
-  } catch (error) {
-    console.warn("Failed to prefetch movie details:", error);
-  }
-};
