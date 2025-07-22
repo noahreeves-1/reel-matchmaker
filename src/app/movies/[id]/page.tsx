@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { MovieDetailsWithBreadcrumbs } from "@/components/movies";
-import { getMovieData } from "@/hooks/server";
+import { getMovieData } from "@/lib/server-functions";
 import { API_CONFIG } from "@/lib/constants";
 
 // RENDERING STRATEGY: ISR (Incremental Static Regeneration) with Static Generation

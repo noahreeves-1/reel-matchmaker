@@ -6,7 +6,7 @@ import {
   PageHeader,
   PageContainer,
 } from "@/components/common";
-import { getInitialMovies } from "@/hooks/server";
+import { getInitialMovies } from "@/lib/server-functions";
 
 // RENDERING STRATEGY: ISR (Incremental Static Regeneration)
 // - This page is statically generated at build time for maximum performance

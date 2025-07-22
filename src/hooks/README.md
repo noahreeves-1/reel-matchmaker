@@ -98,9 +98,9 @@ Hooks for managing UI state and interactions.
   - Current movie selection
   - Clean state management
 
-## Server Hooks (`/server`)
+## Server-Side Data Functions
 
-Server-side functions for SSR/ISR data fetching.
+> **Note**: Server-side data fetching functions have been moved to `@/lib/server-data.ts` to keep the hooks folder focused on client-side React hooks only.
 
 ### `getInitialMovies`
 
@@ -156,7 +156,7 @@ const MyMoviesPage = () => {
 ### Server-Side Data Fetching
 
 ```typescript
-import { getInitialMovies } from "@/hooks/server";
+import { getInitialMovies } from "@/lib/server-data";
 
 export default async function Page() {
   const initialMovies = await getInitialMovies();
