@@ -146,8 +146,6 @@ export const useMovieActionsDb = () => {
       return { previousRatedMovies };
     },
     onSuccess: (data, variables) => {
-      console.log("Rating removal mutation success:", { data, variables });
-
       queryClient.setQueryData<RatedMovie[]>(["ratedMovies"], (old) => {
         if (!old) return old;
         return old.filter((movie) => movie.id !== variables.movieId);
@@ -242,8 +240,6 @@ export const useMovieActionsDb = () => {
       };
     },
     onSuccess: (data, variables) => {
-      console.log("Want to watch mutation success:", { data, variables });
-
       queryClient.setQueryData<{ id: number }[]>(["wantToWatch"], (old) => {
         if (!old) return old;
 

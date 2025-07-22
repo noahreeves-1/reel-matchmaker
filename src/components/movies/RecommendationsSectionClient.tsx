@@ -71,13 +71,7 @@ export const RecommendationsSectionClient = ({
 
   // Log component state for debugging
   useEffect(() => {
-    console.log("🔄 RecommendationsSectionClient: Component state:", {
-      isLoading,
-      isLoadingLastRecommendations,
-      hasRecommendations,
-      recommendationsCount: recommendations.length,
-      ratedMoviesCount,
-    });
+    // Removed console.log("🔄 RecommendationsSectionClient: Component state:", { ... });
   }, [
     isLoading,
     isLoadingLastRecommendations,

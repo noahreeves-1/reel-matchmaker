@@ -23,40 +23,16 @@ export const useRecommendations = (
 
   useEffect(() => {
     const loadLastRecommendations = async () => {
-      console.log(
-        "🔄 useRecommendations: Starting to load last recommendations..."
-      );
       setIsLoadingLastRecommendations(true);
       try {
-        console.log(
-          "🔄 useRecommendations: Making API call to /api/recommendations?last=true&limit=5"
-        );
         const response = await fetch("/api/recommendations?last=true&limit=5");
-        console.log(
-          "🔄 useRecommendations: API response status:",
-          response.status
-        );
 
         if (response.ok) {
           const data = await response.json();
-          console.log("🔄 useRecommendations: API response data:", data);
 
           if (data.success && data.recommendations.length > 0) {
-            console.log(
-              "🔄 useRecommendations: Setting recommendations:",
-              data.recommendations
-            );
             setRecommendations(data.recommendations);
-          } else {
-            console.log(
-              "🔄 useRecommendations: No recommendations found or API returned failure"
-            );
           }
-        } else {
-          console.log(
-            "🔄 useRecommendations: API call failed with status:",
-            response.status
-          );
         }
       } catch (error) {
         console.error(
@@ -64,9 +40,6 @@ export const useRecommendations = (
           error
         );
       } finally {
-        console.log(
-          "🔄 useRecommendations: Finished loading last recommendations"
-        );
         setIsLoadingLastRecommendations(false);
       }
     };
@@ -102,19 +75,12 @@ export const useRecommendations = (
 
       setRecommendations(data);
 
-      console.log(
-        "🔄 useRecommendations: Reloading latest recommendations from database..."
-      );
       const latestResponse = await fetch(
         "/api/recommendations?last=true&limit=5"
       );
       if (latestResponse.ok) {
         const latestData = await latestResponse.json();
         if (latestData.success && latestData.recommendations.length > 0) {
-          console.log(
-            "🔄 useRecommendations: Updated with latest from database:",
-            latestData.recommendations
-          );
           setRecommendations(latestData.recommendations);
         }
       }

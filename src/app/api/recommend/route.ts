@@ -76,27 +76,6 @@ async function getMovieDetails(movieId: number): Promise<TMDBMovie | null> {
 
     const movie = await response.json();
 
-    // Debug: Log the revenue data from TMDB
-    console.log(
-      `🔍 Movie ${movieId} (${movie.title}) revenue from TMDB:`,
-      movie.revenue
-    );
-
-    // Debug: If revenue is undefined, log the full movie object to see what's available
-    if (movie.revenue === undefined || movie.revenue === null) {
-      console.log(
-        `⚠️ Movie ${movieId} (${movie.title}) has no revenue data. Full TMDB response:`,
-        {
-          id: movie.id,
-          title: movie.title,
-          revenue: movie.revenue,
-          budget: movie.budget,
-          status: movie.status,
-          release_date: movie.release_date,
-        }
-      );
-    }
-
     const movieDetails = {
       id: movie.id,
       title: movie.title,
@@ -107,9 +86,6 @@ async function getMovieDetails(movieId: number): Promise<TMDBMovie | null> {
       revenue: movie.revenue,
       popularity: movie.popularity,
     };
-
-    // Debug: Log the processed movie details
-    console.log(`📊 Processed movie details for ${movie.title}:`, movieDetails);
 
     return movieDetails;
   } catch (error) {
@@ -334,13 +310,9 @@ Make the personalizedReason informative and engaging. Include: 1) A brief plot s
       maxTokens: 2000,
     });
 
-    // Debug: Log the raw AI response and parsed recommendations
-    console.log("AI raw response text:", text);
-
     let aiRecommendations: AIRecommendation[];
     try {
       aiRecommendations = JSON.parse(text);
-      console.log("Parsed AI recommendations:", aiRecommendations);
     } catch (error) {
       console.error("Failed to parse AI response:", error);
       return Response.json(
@@ -356,18 +328,10 @@ Make the personalizedReason informative and engaging. Include: 1) A brief plot s
       const searchResult = await searchMovieByTitle(aiRec.title);
 
       if (searchResult) {
-        console.log(
-          `🔍 Processing recommendation: ${aiRec.title} (ID: ${searchResult.id})`
-        );
-
         // Then fetch full movie details including revenue using the movie ID
         const fullMovieDetails = await getMovieDetails(searchResult.id);
 
         if (fullMovieDetails) {
-          console.log(
-            `✅ Full details fetched for ${aiRec.title}, revenue:`,
-            fullMovieDetails.revenue
-          );
           recommendations.push({
             ...fullMovieDetails, // This includes revenue data
             reason: aiRec.reason,
@@ -377,10 +341,6 @@ Make the personalizedReason informative and engaging. Include: 1) A brief plot s
             enhancedReason: searchResult.enhancedReason,
           });
         } else {
-          console.log(
-            `⚠️ Fallback to search result for ${aiRec.title}, revenue:`,
-            searchResult.revenue
-          );
           // Fallback to search result if getMovieDetails fails
           recommendations.push({
             ...searchResult,
