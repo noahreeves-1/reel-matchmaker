@@ -16,6 +16,7 @@ interface RatingModalProps {
   isOpen: boolean;
   onClose: () => void;
   onRate: (movie: RatingModalMovie, rating: number) => void;
+  onRemoveRating?: (movie: RatingModalMovie) => void;
   currentRating?: number;
 }
 
@@ -24,6 +25,7 @@ export const RatingModal = ({
   isOpen,
   onClose,
   onRate,
+  onRemoveRating,
   currentRating,
 }: RatingModalProps) => {
   const [rating, setRating] = useState(currentRating || 0);
@@ -36,6 +38,13 @@ export const RatingModal = ({
     // Automatically save and close the modal when a star is clicked
     onRate(movie, starRating);
     onClose();
+  };
+
+  const handleRemoveRating = () => {
+    if (onRemoveRating) {
+      onRemoveRating(movie);
+      onClose();
+    }
   };
 
   const handleClose = () => {
@@ -128,6 +137,18 @@ export const RatingModal = ({
               : "Select a rating"}
           </p>
         </div>
+
+        {/* Remove Rating Button - Only show if there's a current rating and onRemoveRating is provided */}
+        {currentRating && onRemoveRating && (
+          <div className="text-center mb-4">
+            <button
+              onClick={handleRemoveRating}
+              className="px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+            >
+              Remove Rating
+            </button>
+          </div>
+        )}
 
         <div className="flex justify-center">
           <button

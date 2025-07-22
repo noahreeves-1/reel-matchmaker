@@ -157,7 +157,7 @@ export const RecommendationsSection = ({
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-8">
+    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-12 max-w-5xl mx-auto">
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
@@ -167,9 +167,19 @@ export const RecommendationsSection = ({
             <p className="text-slate-600 dark:text-slate-400">
               {isClient ? (
                 <>
-                  Based on your {ratedMoviesCount} Rated movies
-                  {wantToWatchCount > 0 &&
-                    ` and ${wantToWatchCount} Want to Watch items`}
+                  Based on your{" "}
+                  <span className="font-bold text-white">
+                    {ratedMoviesCount} Rated movies
+                  </span>
+                  {wantToWatchCount > 0 && (
+                    <>
+                      {" "}
+                      and{" "}
+                      <span className="font-bold text-white">
+                        {wantToWatchCount} Want to Watch items
+                      </span>
+                    </>
+                  )}
                 </>
               ) : (
                 "Loading your movie data..."

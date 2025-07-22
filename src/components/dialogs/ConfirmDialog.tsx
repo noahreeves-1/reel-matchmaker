@@ -18,6 +18,8 @@ interface ConfirmDialogProps {
   message: string;
   confirmText?: string;
   cancelText?: string;
+  isLoading?: boolean;
+  loadingText?: string;
 }
 
 export const ConfirmDialog = ({
@@ -28,10 +30,13 @@ export const ConfirmDialog = ({
   message,
   confirmText = "Confirm",
   cancelText = "Cancel",
+  isLoading = false,
+  loadingText = "Loading...",
 }: ConfirmDialogProps) => {
   const handleConfirm = () => {
-    onConfirm();
-    onClose();
+    if (!isLoading) {
+      onConfirm();
+    }
   };
 
   return (
@@ -44,11 +49,22 @@ export const ConfirmDialog = ({
           <p className="text-slate-600 dark:text-slate-400">{message}</p>
         </div>
         <div className="flex justify-end space-x-2">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={isLoading}>
             {cancelText}
           </Button>
-          <Button variant="destructive" onClick={handleConfirm}>
-            {confirmText}
+          <Button
+            variant="destructive"
+            onClick={handleConfirm}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                {loadingText}
+              </>
+            ) : (
+              confirmText
+            )}
           </Button>
         </div>
       </DialogContent>

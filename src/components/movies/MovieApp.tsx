@@ -1,13 +1,18 @@
 "use client";
 
-import { TMDBResponse } from "@/lib/tmdb";
+import { useState } from "react";
 import { useMovies } from "@/hooks";
 import { useRatedMoviesDb } from "@/hooks/user/useRatedMoviesDb";
 import { useWantToWatchDb } from "@/hooks/user/useWantToWatchDb";
 import { useRecommendations } from "@/hooks/user/useRecommendations";
-import { useRatingModal } from "@/hooks/ui/useRatingModal";
 import { useMovieActionsDb } from "@/hooks/user/useMovieActionsDb";
-import { MovieGrid } from "@/components/movies";
+import {
+  MovieGrid,
+  RecommendationsSection,
+  RatingModal,
+} from "@/components/movies";
+import { MovieRecommendation } from "@/types/movie";
+import { TMDBMovie } from "@/lib/tmdb";
 
 // MOVIE APP: Main interactive component with server-side data fetching
 // This component handles its own data fetching to keep the page static
@@ -24,17 +29,13 @@ import { MovieGrid } from "@/components/movies";
 // - SCALE BREAKERS: localStorage size limits, no server-side user state, limited SEO
 // - FUTURE IMPROVEMENTS: Add server-side user state, hybrid rendering, better SEO
 
-interface MovieAppProps {
-  // No initialMovies prop - component fetches its own data
-}
-
-export const MovieApp = ({}: MovieAppProps) => {
+export const MovieApp = () => {
   // Custom Hooks: These encapsulate complex logic and state management
   // Each hook has a single responsibility and can be reused across components
 
   // Database-backed hooks for user data
-  const { ratedMovies, loadRatedMovies } = useRatedMoviesDb();
-  const { wantToWatchList, loadWantToWatchList } = useWantToWatchDb();
+  const { ratedMovies } = useRatedMoviesDb();
+  const { wantToWatchList } = useWantToWatchDb();
 
   // Recommendations Hook: Manages AI-powered movie recommendations
   // Pass the actual ratedMovies and wantToWatchList to ensure consistency
@@ -44,28 +45,197 @@ export const MovieApp = ({}: MovieAppProps) => {
     generateRecommendations,
   } = useRecommendations(ratedMovies, wantToWatchList);
 
-  // Movie Actions Hook: Manages user interactions with movies (rating, want-to-watch)
-  const { rateMovie, toggleWantToWatch } = useMovieActionsDb();
+  // Movie Actions Hook: Now includes optimistic updates
+  const { rateMovie, removeRating, toggleWantToWatch } = useMovieActionsDb();
 
   // Movies Hook: Manages movie data fetching, search, and pagination
   // This hook handles both popular movies and search results
   const {
     movies,
     isLoadingMovies,
-    movieError,
     hasMoreMovies,
+    isLoadingMore,
+    loadMoreMovies,
     searchQuery,
     isSearching,
     performSearch,
     clearSearch,
   } = useMovies(); // No initial data - fetches from API
 
-  // Rating Modal Hook: Manages the rating modal state and interactions
-  const { isOpen, movieId, openModal, closeModal } = useRatingModal();
+  // Rating modal state
+  const [ratingModal, setRatingModal] = useState<{
+    isOpen: boolean;
+    movie: TMDBMovie | null;
+  }>({
+    isOpen: false,
+    movie: null,
+  });
+
+  // Rating functionality
+  const handleOpenRatingModal = (movie: TMDBMovie) => {
+    setRatingModal({
+      isOpen: true,
+      movie,
+    });
+  };
+
+  // Wrapper function for RecommendationsSection that expects movieId
+  const handleOpenRatingModalById = (movieId: number) => {
+    // Find the movie in the movies array
+    const movie = movies.find((m) => m.id === movieId);
+    if (movie) {
+      handleOpenRatingModal(movie);
+    }
+  };
+
+  const handleCloseRatingModal = () => {
+    setRatingModal({
+      isOpen: false,
+      movie: null,
+    });
+  };
+
+  const handleRateMovieFromModal = async (
+    movie: {
+      id: number;
+      title: string;
+      poster_path?: string | null;
+      release_date?: string;
+      overview?: string;
+    },
+    rating: number
+  ) => {
+    try {
+      // Convert to TMDBMovie format
+      const tmdbMovie: TMDBMovie = {
+        id: movie.id,
+        title: movie.title,
+        poster_path: movie.poster_path || null,
+        release_date: movie.release_date || "",
+        overview: movie.overview || "",
+        vote_average: 0,
+        vote_count: 0,
+        backdrop_path: null,
+        genre_ids: [],
+        popularity: 0,
+        adult: false,
+        original_language: "en",
+        original_title: movie.title,
+        video: false,
+      };
+
+      await rateMovie(tmdbMovie, rating);
+
+      // Close the modal
+      handleCloseRatingModal();
+      // No need to manually refresh - React Query handles this with optimistic updates
+    } catch (error) {
+      console.error("Error rating movie:", error);
+    }
+  };
+
+  // Rating removal functionality with optimistic updates
+  const handleRemoveRatingFromModal = async (movie: { id: number }) => {
+    try {
+      await removeRating(movie.id);
+      // No need to manually refresh - React Query handles this with optimistic updates
+    } catch (error) {
+      console.error("Error removing rating:", error);
+    }
+  };
+
+  // Wrapper functions to match RecommendationsSection expected signatures
+  // Now uses optimistic updates - no manual loading states needed
+  const handleRateMovie = async (movieId: number, rating: number) => {
+    try {
+      // Find the movie in recommendations to get the full movie object
+      const movie = recommendations.find((rec) => rec.id === movieId);
+      if (movie) {
+        // Convert MovieRecommendation to TMDBMovie format
+        const tmdbMovie = {
+          id: movie.id,
+          title: movie.title,
+          poster_path: movie.poster_path,
+          release_date: movie.release_date,
+          overview: movie.overview,
+          vote_average: movie.vote_average,
+          vote_count: movie.vote_count,
+          backdrop_path: null,
+          genre_ids: [],
+          popularity: movie.popularity || 0,
+          adult: false,
+          original_language: "en",
+          original_title: movie.title,
+          video: false,
+        };
+        await rateMovie(tmdbMovie, rating);
+        // No need to manually refresh - React Query handles this with optimistic updates
+      }
+    } catch (error) {
+      console.error("Error rating movie:", error);
+    }
+  };
+
+  const handleToggleWantToWatch = async (
+    movie: MovieRecommendation,
+    isInWantToWatch: boolean
+  ) => {
+    try {
+      // Convert MovieRecommendation to TMDBMovie format
+      const tmdbMovie = {
+        id: movie.id,
+        title: movie.title,
+        poster_path: movie.poster_path,
+        release_date: movie.release_date,
+        overview: movie.overview,
+        vote_average: movie.vote_average,
+        vote_count: movie.vote_count,
+        backdrop_path: null,
+        genre_ids: [],
+        popularity: movie.popularity || 0,
+        adult: false,
+        original_language: "en",
+        original_title: movie.title,
+        video: false,
+      };
+      await toggleWantToWatch(tmdbMovie, isInWantToWatch);
+      // No need to manually refresh - React Query handles this
+    } catch (error) {
+      console.error("Error toggling want-to-watch:", error);
+    }
+  };
+
+  // Wrapper function for MovieGrid to match MovieCard expected signature
+  const handleToggleWantToWatchForGrid = async (
+    movie: TMDBMovie,
+    isInWantToWatch: boolean
+  ) => {
+    try {
+      await toggleWantToWatch(movie, isInWantToWatch);
+      // No need to manually refresh - React Query handles this
+    } catch (error) {
+      console.error("Error toggling want-to-watch:", error);
+    }
+  };
 
   return (
-    <div className="min-h-screen">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* AI Recommendations Section */}
+        <RecommendationsSection
+          ratedMoviesCount={ratedMovies.length}
+          ratedMovies={ratedMovies}
+          wantToWatchCount={wantToWatchList.length}
+          onGenerateRecommendations={generateRecommendations}
+          onRateMovie={handleRateMovie}
+          isLoading={isGeneratingRecommendations}
+          recommendations={recommendations}
+          ratingLoadingStates={{}}
+          wantToWatchLoadingStates={{}}
+          onToggleWantToWatch={handleToggleWantToWatch}
+        />
+
+        {/* Movie Grid Section */}
         <MovieGrid
           isLoading={isLoadingMovies || isSearching}
           movies={movies}
@@ -73,19 +243,33 @@ export const MovieApp = ({}: MovieAppProps) => {
             ratedMovies.map((movie) => [movie.id, movie.rating])
           )}
           wantToWatchList={wantToWatchList.map((movie) => movie.id)}
-          onOpenRatingModal={(movieId) => openModal(movieId)}
-          onToggleWantToWatch={toggleWantToWatch}
+          onOpenRatingModal={handleOpenRatingModalById}
+          onToggleWantToWatch={handleToggleWantToWatchForGrid}
           ratingLoadingStates={{}}
           wantToWatchLoadingStates={{}}
           hasMoreMovies={hasMoreMovies}
-          isLoadingMore={false}
-          onLoadMore={() => {}}
+          isLoadingMore={isLoadingMore}
+          onLoadMore={loadMoreMovies}
           onSearch={performSearch}
           onClear={clearSearch}
           searchQuery={searchQuery}
           isSearchLoading={isSearching}
         />
-      </main>
+      </div>
+
+      {/* Rating Modal */}
+      {ratingModal.movie && (
+        <RatingModal
+          movie={ratingModal.movie}
+          isOpen={ratingModal.isOpen}
+          onClose={handleCloseRatingModal}
+          onRate={handleRateMovieFromModal}
+          onRemoveRating={handleRemoveRatingFromModal}
+          currentRating={
+            ratedMovies.find((rm) => rm.id === ratingModal.movie!.id)?.rating
+          }
+        />
+      )}
     </div>
   );
 };

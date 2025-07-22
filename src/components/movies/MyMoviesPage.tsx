@@ -14,6 +14,7 @@ import { useRatedMoviesDb } from "@/hooks/user/useRatedMoviesDb";
 import { useWantToWatchDb } from "@/hooks/user/useWantToWatchDb";
 import { WantToWatchMovie, UserInitialData } from "@/types/movie";
 import { TMDBMovie } from "@/lib/tmdb";
+import { useMovieActionsDb } from "@/hooks/user/useMovieActionsDb";
 
 // MY MOVIES PAGE: User's personal movie collection management
 // This component displays and manages user's rated movies and want-to-watch list
@@ -37,14 +38,6 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
     movie: null,
   });
 
-  // Loading states for action buttons
-  const [ratingLoadingStates, setRatingLoadingStates] = useState<
-    Record<number, boolean>
-  >({});
-  const [wantToWatchLoadingStates, setWantToWatchLoadingStates] = useState<
-    Record<number, boolean>
-  >({});
-
   // Database-based hooks with initial data from SSR
   const {
     ratedMovies,
@@ -54,44 +47,51 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
     confirmDialog,
     openConfirmDialog,
     closeConfirmDialog,
-    handleRemoveRating,
-    loadRatedMovies,
-    saveRating,
   } = useRatedMoviesDb(initialData);
 
+  const { wantToWatchList, movieDetails: wantToWatchMovieDetails } =
+    useWantToWatchDb(initialData);
+
+  // Movie Actions Hook: Now includes optimistic updates
   const {
-    wantToWatchList,
-    addToWantToWatch,
-    removeFromWantToWatch,
-    isInWantToWatch,
-  } = useWantToWatchDb(initialData);
+    rateMovie,
+    removeRating,
+    isRatingMovie,
+    isRemovingRating,
+    isTogglingWantToWatch,
+    toggleWantToWatch,
+  } = useMovieActionsDb();
 
   // Set client flag after hydration
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  const handleRemoveFromWantToWatch = async (movieId: number) => {
-    await removeFromWantToWatch(movieId);
-  };
-
   const handleToggleWantToWatch = async (
     movie: TMDBMovie,
     isInWantToWatch: boolean
   ) => {
-    setWantToWatchLoadingStates((prev) => ({ ...prev, [movie.id]: true }));
-
     try {
-      if (isInWantToWatch) {
-        await handleRemoveFromWantToWatch(movie.id);
-      } else {
-        await addToWantToWatch(movie.id);
-      }
+      await toggleWantToWatch(movie, isInWantToWatch);
+      // No need to manually refresh - React Query handles this with optimistic updates
     } catch (error) {
       console.error("Error toggling want-to-watch:", error);
-    } finally {
-      setWantToWatchLoadingStates((prev) => ({ ...prev, [movie.id]: false }));
     }
+  };
+
+  // Rating removal functionality with optimistic updates
+  const handleRemoveRating = async (movieId: number) => {
+    try {
+      await removeRating(movieId, closeConfirmDialog);
+      // No need to manually refresh - React Query handles this with optimistic updates
+    } catch (error) {
+      console.error("Error removing rating:", error);
+    }
+  };
+
+  // Wrapper function for RatingModal's onRemoveRating prop
+  const handleRemoveRatingFromModal = (movie: { id: number }) => {
+    handleRemoveRating(movie.id);
   };
 
   // Rating functionality
@@ -119,28 +119,32 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
     },
     rating: number
   ) => {
-    setRatingLoadingStates((prev) => ({ ...prev, [movie.id]: true }));
-
     try {
-      // Save the rating to the database
-      const success = await saveRating(movie.id, rating);
+      // Convert to TMDBMovie format
+      const tmdbMovie: TMDBMovie = {
+        id: movie.id,
+        title: movie.title,
+        poster_path: movie.poster_path || null,
+        release_date: movie.release_date || "",
+        overview: movie.overview || "",
+        vote_average: 0,
+        vote_count: 0,
+        backdrop_path: null,
+        genre_ids: [],
+        popularity: 0,
+        adult: false,
+        original_language: "en",
+        original_title: movie.title,
+        video: false,
+      };
 
-      if (success) {
-        // Close the modal
-        handleCloseRatingModal();
+      await rateMovie(tmdbMovie, rating);
 
-        // Refresh the rated movies data to reflect the changes
-        await loadRatedMovies();
-
-        // Remove from want-to-watch list if it was there
-        if (isInWantToWatch(movie.id)) {
-          await removeFromWantToWatch(movie.id);
-        }
-      }
+      // Close the modal
+      handleCloseRatingModal();
+      // No need to manually refresh - React Query handles this with optimistic updates
     } catch (error) {
       console.error("Error rating movie:", error);
-    } finally {
-      setRatingLoadingStates((prev) => ({ ...prev, [movie.id]: false }));
     }
   };
 
@@ -149,9 +153,9 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
         <Header />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <LoadingSkeleton />
-        </main>
+        </div>
         <Footer />
       </div>
     );
@@ -161,9 +165,9 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
         <Header />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <LoadingSkeleton />
-        </main>
+        </div>
         <Footer />
       </div>
     );
@@ -173,7 +177,7 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
         <Header />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
             <div className="text-6xl mb-4">⚠️</div>
             <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
@@ -189,7 +193,7 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
               Retry
             </button>
           </div>
-        </main>
+        </div>
         <Footer />
       </div>
     );
@@ -198,7 +202,7 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <Header />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
             My Movies
@@ -267,12 +271,8 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
                           onOpenRatingModal={() =>
                             handleOpenRatingModal(movieDetail)
                           }
-                          isRatingLoading={
-                            ratingLoadingStates[movieDetail.id] || false
-                          }
-                          isWantToWatchLoading={
-                            wantToWatchLoadingStates[movieDetail.id] || false
-                          }
+                          isRatingLoading={isRatingMovie}
+                          isWantToWatchLoading={isTogglingWantToWatch}
                         />
                       ) : (
                         <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
@@ -295,7 +295,7 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
                             movieDetail?.title || `Movie ${ratedMovie.id}`;
                           openConfirmDialog(ratedMovie.id, title);
                         }}
-                        className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm transition-colors z-20 opacity-0 group-hover:opacity-100"
+                        className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm transition-colors z-20"
                         title="Remove rating"
                       >
                         ×
@@ -331,37 +331,46 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {wantToWatchList.map((wantToWatchItem: WantToWatchMovie) => {
-                  // Convert WantToWatchMovie to TMDBMovie format for display
-                  const movieDetail: TMDBMovie = {
-                    id: wantToWatchItem.id,
-                    title: wantToWatchItem.title,
-                    poster_path: wantToWatchItem.poster_path || null,
-                    backdrop_path: null,
-                    release_date: wantToWatchItem.release_date || "",
-                    overview: "",
-                    vote_average: 0,
-                    vote_count: 0,
-                    genre_ids: [],
-                    popularity: 0,
-                  };
+                  // Get full movie details from the hook
+                  const movieDetail =
+                    wantToWatchMovieDetails[wantToWatchItem.id];
+
+                  // Check if this movie is also rated
+                  const ratedMovie = ratedMovies.find(
+                    (rm) => rm.id === wantToWatchItem.id
+                  );
+                  const userRating = ratedMovie?.rating;
 
                   return (
                     <div key={wantToWatchItem.id} className="relative group">
-                      <MovieCard
-                        isLoading={false}
-                        movie={movieDetail}
-                        isInWantToWatch={true}
-                        onToggleWantToWatch={handleToggleWantToWatch}
-                        onOpenRatingModal={() =>
-                          handleOpenRatingModal(movieDetail)
-                        }
-                        isRatingLoading={
-                          ratingLoadingStates[movieDetail.id] || false
-                        }
-                        isWantToWatchLoading={
-                          wantToWatchLoadingStates[movieDetail.id] || false
-                        }
-                      />
+                      {movieDetail ? (
+                        <MovieCard
+                          isLoading={false}
+                          movie={movieDetail}
+                          userRating={userRating}
+                          isInWantToWatch={true}
+                          onToggleWantToWatch={(movie, isInWantToWatch) =>
+                            handleToggleWantToWatch(movie, isInWantToWatch)
+                          }
+                          onOpenRatingModal={() =>
+                            handleOpenRatingModal(movieDetail)
+                          }
+                          isRatingLoading={isRatingMovie}
+                          isWantToWatchLoading={isTogglingWantToWatch}
+                        />
+                      ) : (
+                        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                          <div className="relative aspect-[2/3] bg-slate-200 dark:bg-slate-700">
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                            </div>
+                          </div>
+                          <div className="p-3">
+                            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded mb-2"></div>
+                            <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-2/3"></div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -369,7 +378,7 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
             )}
           </>
         )}
-      </main>
+      </div>
       <Footer />
 
       <ConfirmDialog
@@ -382,6 +391,8 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
         message={`Are you sure you want to remove your rating for "${confirmDialog.movieTitle}"?`}
         confirmText="Remove"
         cancelText="Cancel"
+        isLoading={isRemovingRating}
+        loadingText="Removing..."
       />
 
       {/* Rating Modal */}
@@ -391,6 +402,7 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
           isOpen={ratingModal.isOpen}
           onClose={handleCloseRatingModal}
           onRate={handleRateMovie}
+          onRemoveRating={handleRemoveRatingFromModal}
           currentRating={
             ratedMovies.find((rm) => rm.id === ratingModal.movie!.id)?.rating
           }

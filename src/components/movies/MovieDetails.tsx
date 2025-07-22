@@ -37,32 +37,20 @@ export const MovieDetails = ({ movie, breadcrumbs }: MovieDetailsProps) => {
     movie: null,
   });
 
-  // Loading states for action buttons
-  const [ratingLoading, setRatingLoading] = useState(false);
-  const [wantToWatchLoading, setWantToWatchLoading] = useState(false);
-
   // Session and authentication
   const { status } = useSession();
   const isAuthenticated = status === "authenticated";
   const isLoading = status === "loading";
 
   // Database-based hooks for user data
-  const { ratedMovies, loadRatedMovies } = useRatedMoviesDb();
-  const { wantToWatchList, loadWantToWatchList } = useWantToWatchDb();
-  const { rateMovie, toggleWantToWatch } = useMovieActionsDb();
+  const { ratedMovies } = useRatedMoviesDb();
+  const { wantToWatchList } = useWantToWatchDb();
+  const { rateMovie, removeRating, toggleWantToWatch } = useMovieActionsDb();
 
   // Set client flag after hydration
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-  // Load user data on component mount
-  useEffect(() => {
-    if (isClient && isAuthenticated) {
-      loadRatedMovies();
-      loadWantToWatchList();
-    }
-  }, [isClient, isAuthenticated, loadRatedMovies, loadWantToWatchList]);
 
   // Get current user rating and want-to-watch status
   const currentRating = ratedMovies.find((rm) => rm.id === movie.id)?.rating;
@@ -98,30 +86,32 @@ export const MovieDetails = ({ movie, breadcrumbs }: MovieDetailsProps) => {
     },
     rating: number
   ) => {
-    setRatingLoading(true);
     try {
       await rateMovie(movie as TMDBMovie, rating);
-      // Refresh the rated movies list after rating
-      await loadRatedMovies();
       // Close the modal
       handleCloseRatingModal();
+      // No need to manually refresh - React Query handles this with optimistic updates
     } catch (error) {
       console.error("Error rating movie:", error);
-    } finally {
-      setRatingLoading(false);
+    }
+  };
+
+  // Rating removal functionality with optimistic updates
+  const handleRemoveRatingFromModal = async (movie: { id: number }) => {
+    try {
+      await removeRating(movie.id);
+      // No need to manually refresh - React Query handles this with optimistic updates
+    } catch (error) {
+      console.error("Error removing rating:", error);
     }
   };
 
   const handleToggleWantToWatch = async () => {
-    setWantToWatchLoading(true);
     try {
-      await toggleWantToWatch(movie);
-      // Refresh the want-to-watch list after toggling
-      await loadWantToWatchList();
+      await toggleWantToWatch(movie, isInWantToWatch);
+      // No need to manually refresh - React Query handles this
     } catch (error) {
       console.error("Error toggling want-to-watch:", error);
-    } finally {
-      setWantToWatchLoading(false);
     }
   };
 
@@ -210,16 +200,16 @@ export const MovieDetails = ({ movie, breadcrumbs }: MovieDetailsProps) => {
                     {/* Rating Button */}
                     <button
                       onClick={handleOpenRatingModal}
-                      disabled={ratingLoading}
+                      disabled={isLoading}
                       className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                        ratingLoading
+                        isLoading
                           ? "bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-slate-400 cursor-not-allowed"
                           : currentRating
                           ? "bg-yellow-500 hover:bg-yellow-600 text-white"
                           : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-yellow-500 hover:text-white"
                       }`}
                     >
-                      {ratingLoading ? (
+                      {isLoading ? (
                         <>
                           <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
                           Rating...
@@ -256,16 +246,16 @@ export const MovieDetails = ({ movie, breadcrumbs }: MovieDetailsProps) => {
                     {/* Want to Watch Button */}
                     <button
                       onClick={handleToggleWantToWatch}
-                      disabled={wantToWatchLoading}
+                      disabled={isLoading}
                       className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                        wantToWatchLoading
+                        isLoading
                           ? "bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-slate-400 cursor-not-allowed"
                           : isInWantToWatch
                           ? "bg-red-500 hover:bg-red-600 text-white"
                           : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-red-500 hover:text-white"
                       }`}
                     >
-                      {wantToWatchLoading ? (
+                      {isLoading ? (
                         <>
                           <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
                           {isInWantToWatch ? "Removing..." : "Adding..."}
@@ -461,6 +451,7 @@ export const MovieDetails = ({ movie, breadcrumbs }: MovieDetailsProps) => {
           onClose={handleCloseRatingModal}
           movie={ratingModal.movie}
           onRate={handleRateMovie}
+          onRemoveRating={handleRemoveRatingFromModal}
           currentRating={currentRating}
         />
       )}

@@ -190,7 +190,7 @@ export const MovieCard = ({
 
         <div className="flex items-center justify-between">
           <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
-            <span>{movie.vote_average.toFixed(1)} ★</span>
+            <span>{movie.vote_average.toFixed(1)} ★ TMDB</span>
           </div>
           <div className="text-sm text-slate-500 dark:text-slate-500">
             <span>

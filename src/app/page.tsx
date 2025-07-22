@@ -37,7 +37,7 @@ export default function Home() {
 
       {/* DYNAMIC SECTION - MovieApp handles its own data fetching */}
       <section className="bg-white dark:bg-slate-900">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-4">
           <Suspense fallback={<LoadingSkeleton />}>
             <MovieApp />
           </Suspense>

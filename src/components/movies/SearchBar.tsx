@@ -29,7 +29,7 @@ export const SearchBar = ({
             />
           </div>
         </div>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-4 text-center">
+        <p className="text-sm text-slate-500 dark:text-white mt-4 text-center">
           Search by title to find your perfect movie.
         </p>
       </div>

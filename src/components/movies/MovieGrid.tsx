@@ -45,7 +45,7 @@ export const MovieGrid = ({
   isSearchLoading,
 }: MovieGridProps) => {
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-12 pt-6">
       {/* Search Bar - Testing simplified version */}
       <SearchBar
         onSearch={onSearch}
