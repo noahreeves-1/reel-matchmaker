@@ -8,30 +8,17 @@ import {
 } from "@/components/common";
 import { getInitialMovies } from "@/lib/server-functions";
 
-// RENDERING STRATEGY: ISR (Incremental Static Regeneration)
-// - This page is statically generated at build time for maximum performance
-// - It's regenerated every hour to keep popular movies list fresh
-// - Benefits: Fast loading, good SEO, reduced API calls
-// - Perfect for: Popular movies list that changes daily but not hourly
-//
-// SCALING CONSIDERATIONS:
-// - TRADEOFFS: 1-hour stale data, no personalization, limited filtering options
-// - VERCEL OPTIMIZATIONS: Global CDN caching, automatic scaling, serverless functions
-// - SCALE BREAKERS: High traffic during revalidation, TMDB rate limits
-// - FUTURE IMPROVEMENTS: Add user preferences, advanced filtering, real-time trending
+// ISR (Incremental Static Regeneration) page for popular movies
+// Statically generated at build time, regenerated every hour for freshness
+
 export const revalidate = 3600;
 
-// Generate metadata for SEO
 export const metadata = {
   title: "Popular Movies - Reel Matchmaker",
   description: "Discover the most popular movies trending right now",
   keywords: ["movies", "popular", "trending", "TMDB", "streaming"],
 };
 
-/**
- * Movies page component
- * Displays popular movies with ISR for optimal performance
- */
 export default async function MoviesPage() {
   const movies = await getInitialMovies();
 

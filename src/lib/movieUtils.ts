@@ -1,22 +1,15 @@
-// MOVIE UTILITIES: Helper functions for movie data processing
-// This file provides utility functions for working with movie data
+// Helper functions for movie data processing
 
-/**
- * Get movie poster URL with fallback
- */
 export const getPosterUrl = (
   posterPath: string | null,
   size: string = "w500"
 ): string => {
   if (!posterPath) {
-    return "/placeholder-poster.jpg"; // You'll need to add this image
+    return "/placeholder-poster.jpg";
   }
   return `https://image.tmdb.org/t/p/${size}${posterPath}`;
 };
 
-/**
- * Format movie runtime in hours and minutes
- */
 export const formatRuntime = (minutes: number): string => {
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
@@ -30,9 +23,6 @@ export const formatRuntime = (minutes: number): string => {
   }
 };
 
-/**
- * Format currency for display
- */
 export const formatCurrency = (amount: number): string => {
   if (amount === 0) return "Unknown";
 
@@ -47,9 +37,6 @@ export const formatCurrency = (amount: number): string => {
   }
 };
 
-/**
- * Get directors from movie credits
- */
 export const getDirectors = (movie: {
   credits?: { crew?: Array<{ job: string; name: string }> };
 }): Array<{ name: string }> => {
@@ -62,9 +49,6 @@ export const getDirectors = (movie: {
     .map((person: { job: string; name: string }) => ({ name: person.name }));
 };
 
-/**
- * Get writers from movie credits
- */
 export const getWriters = (movie: {
   credits?: { crew?: Array<{ job: string; name: string }> };
 }): Array<{ name: string }> => {
@@ -80,9 +64,6 @@ export const getWriters = (movie: {
     .map((person: { job: string; name: string }) => ({ name: person.name }));
 };
 
-/**
- * Get top cast members from movie credits (first 8 cast members)
- */
 export const getTopCast = (movie: {
   credits?: {
     cast?: Array<{
@@ -101,7 +82,7 @@ export const getTopCast = (movie: {
   if (!movie.credits?.cast) return [];
 
   return movie.credits.cast
-    .slice(0, 8) // Get first 8 cast members
+    .slice(0, 8)
     .map(
       (actor: {
         id: number;
@@ -117,9 +98,6 @@ export const getTopCast = (movie: {
     );
 };
 
-/**
- * Get trailer videos from movie data
- */
 export const getTrailers = (movie: {
   videos?: {
     results?: Array<{
@@ -144,7 +122,7 @@ export const getTrailers = (movie: {
       (video: { type: string; site: string }) =>
         video.type === "Trailer" && video.site === "YouTube"
     )
-    .slice(0, 6) // Limit to 6 trailers
+    .slice(0, 6)
     .map(
       (video: {
         id: string;

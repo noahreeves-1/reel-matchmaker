@@ -10,16 +10,15 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
-// USERS TABLE: Store user information and preferences
+// Store user information and preferences
 // This replaces localStorage user data with persistent database storage
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull().unique(),
-  password: text("password").notNull(), // Hashed password
+  password: text("password").notNull(),
   name: text("name"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  // Store user preferences as JSON for flexibility
   preferences: jsonb("preferences").$type<{
     favoriteGenres?: number[];
     preferredLanguage?: string;
@@ -27,10 +26,10 @@ export const users = pgTable("users", {
   }>(),
 });
 
-// MOVIES TABLE: Cache movie data from TMDB to reduce API calls
+// Cache movie data from TMDB to reduce API calls
 // This stores frequently accessed movie information locally
 export const movies = pgTable("movies", {
-  id: integer("id").primaryKey(), // TMDB movie ID
+  id: integer("id").primaryKey(),
   title: text("title").notNull(),
   overview: text("overview"),
   posterPath: text("poster_path"),
@@ -39,18 +38,17 @@ export const movies = pgTable("movies", {
   voteAverage: numeric("vote_average", {
     precision: 3,
     scale: 1,
-  }).$type<number>(), // Store as numeric to handle TMDB's 0-10 scale
+  }).$type<number>(),
   voteCount: integer("vote_count"),
   popularity: numeric("popularity", {
     precision: 10,
     scale: 4,
-  }).$type<number>(), // TMDB popularity can be numeric
+  }).$type<number>(),
   runtime: integer("runtime"),
   status: text("status"),
   tagline: text("tagline"),
   budget: integer("budget"),
   revenue: integer("revenue"),
-  // Store additional data as JSON for flexibility
   genres: jsonb("genres").$type<Array<{ id: number; name: string }>>(),
   productionCompanies: jsonb("production_companies").$type<
     Array<{
@@ -62,11 +60,10 @@ export const movies = pgTable("movies", {
       origin_country?: string;
     }>
   >(),
-  // Track when we last updated this movie from TMDB
   lastUpdated: timestamp("last_updated").defaultNow().notNull(),
 });
 
-// USER RATINGS TABLE: Store user movie ratings
+// Store user movie ratings
 // This replaces localStorage rated movies with persistent storage
 export const userRatings = pgTable("user_ratings", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -76,15 +73,14 @@ export const userRatings = pgTable("user_ratings", {
   movieId: integer("movie_id")
     .notNull()
     .references(() => movies.id, { onDelete: "cascade" }),
-  rating: integer("rating").notNull(), // 1-10 scale
+  rating: integer("rating").notNull(),
   ratedAt: timestamp("rated_at").defaultNow().notNull(),
-  // Store additional rating metadata
-  notes: text("notes"), // Optional user notes about the movie
+  notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// WANT TO WATCH TABLE: Store user's watch list
+// Store user's watch list
 // This replaces localStorage want-to-watch list with persistent storage
 export const wantToWatch = pgTable("want_to_watch", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -95,10 +91,8 @@ export const wantToWatch = pgTable("want_to_watch", {
     .notNull()
     .references(() => movies.id, { onDelete: "cascade" }),
   addedAt: timestamp("added_at").defaultNow().notNull(),
-  // Optional priority level for the watch list
-  priority: integer("priority").default(1), // 1-5 scale, 1 being highest priority
-  notes: text("notes"), // Optional notes about why they want to watch
-  // Store movie metadata for quick access without joining movies table
+  priority: integer("priority").default(1),
+  notes: text("notes"),
   movieTitle: text("movie_title"),
   posterPath: text("poster_path"),
   releaseDate: text("release_date"),
@@ -106,7 +100,7 @@ export const wantToWatch = pgTable("want_to_watch", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// RECOMMENDATIONS TABLE: Cache AI-generated recommendations
+// Cache AI-generated recommendations
 // This stores recommendations to avoid regenerating them frequently
 export const recommendations = pgTable("recommendations", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -116,23 +110,21 @@ export const recommendations = pgTable("recommendations", {
   movieId: integer("movie_id")
     .notNull()
     .references(() => movies.id, { onDelete: "cascade" }),
-  reason: text("reason").notNull(), // AI-generated reason for recommendation
-  matchScore: integer("match_score"), // 1-100 score
+  reason: text("reason").notNull(),
+  matchScore: integer("match_score"),
   matchLevel: text("match_level").$type<
     "LOVE IT" | "LIKE IT" | "MAYBE" | "RISKY"
   >(),
   personalizedReason: text("personalized_reason"),
   enhancedReason: text("enhanced_reason"),
   generatedAt: timestamp("generated_at").defaultNow().notNull(),
-  // Track if user has seen this recommendation
   seen: boolean("seen").default(false),
-  // Track if user acted on this recommendation (rated/watched)
   actedOn: boolean("acted_on").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// WATCH HISTORY TABLE: Track movies user has watched
+// Track movies user has watched
 // This helps with recommendation accuracy and user analytics
 export const watchHistory = pgTable("watch_history", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -143,19 +135,16 @@ export const watchHistory = pgTable("watch_history", {
     .notNull()
     .references(() => movies.id, { onDelete: "cascade" }),
   watchedAt: timestamp("watched_at").defaultNow().notNull(),
-  // Track how they watched it (streaming service, theater, etc.)
   watchMethod: text("watch_method").$type<
     "streaming" | "theater" | "dvd" | "other"
   >(),
-  // Optional rating given after watching
-  rating: integer("rating"), // 1-10 scale
-  // Optional review
+  rating: integer("rating"),
   review: text("review"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// RELATIONS: Define relationships between tables
+// Define relationships between tables
 // This helps with type safety and query optimization
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -219,7 +208,7 @@ export const watchHistoryRelations = relations(watchHistory, ({ one }) => ({
   }),
 }));
 
-// EXPORT TYPES: TypeScript types for the schema
+// TypeScript types for the schema
 // These help with type safety throughout the application
 
 export type User = typeof users.$inferSelect;

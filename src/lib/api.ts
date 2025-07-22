@@ -1,4 +1,4 @@
-// CLIENT-SIDE API WRAPPER: Frontend API calls to our Next.js API routes
+// Frontend API calls to our Next.js API routes
 // This file provides a clean interface for client components to make API calls
 //
 // SCALING CONSIDERATIONS:

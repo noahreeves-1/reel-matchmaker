@@ -11,10 +11,7 @@ interface ErrorPageProps {
   }>;
 }
 
-/**
- * Reusable error page component
- * Provides consistent error page styling and actions
- */
+// Reusable error page component with consistent styling and actions
 export const ErrorPage = ({
   title,
   description,

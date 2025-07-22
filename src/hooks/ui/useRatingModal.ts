@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-// RATING MODAL HOOK: Simple state management for rating modal
+// Simple state management for rating modal
 // This hook manages the open/close state and rating value for the movie rating modal
 export const useRatingModal = () => {
   const [isOpen, setIsOpen] = useState(false);

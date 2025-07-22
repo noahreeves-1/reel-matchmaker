@@ -6,18 +6,6 @@ import { XIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-// DIALOG COMPONENT: Modal dialog system with Radix UI primitives
-// This component provides a complete modal dialog system with accessibility features
-//
-// SCALING CONSIDERATIONS:
-// - TRADEOFFS: Portal rendering, focus management, overlay complexity
-// - VERCEL OPTIMIZATIONS: Client-side only, no server load, instant rendering
-// - SCALE BREAKERS: Many modals, focus trap issues, memory leaks
-// - FUTURE IMPROVEMENTS: Add more variants, custom animations, theme system
-//
-// CURRENT USAGE: Modal dialogs, confirmations, forms, content overlays
-// ACCESSIBILITY: Built-in focus management, keyboard navigation, screen reader support
-
 function Dialog({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
@@ -122,7 +110,10 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("text-lg leading-none font-semibold", className)}
+      className={cn(
+        "text-lg font-semibold leading-none tracking-tight",
+        className
+      )}
       {...props}
     />
   );
@@ -135,7 +126,7 @@ function DialogDescription({
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      className={cn("text-muted-foreground text-sm", className)}
+      className={cn("text-sm text-muted-foreground", className)}
       {...props}
     />
   );
@@ -143,13 +134,11 @@ function DialogDescription({
 
 export {
   Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogOverlay,
-  DialogPortal,
-  DialogTitle,
   DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
 };

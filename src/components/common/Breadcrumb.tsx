@@ -9,10 +9,7 @@ interface BreadcrumbProps {
   items: BreadcrumbItem[];
 }
 
-/**
- * Reusable breadcrumb navigation component
- * Eliminates code duplication across pages
- */
+// Reusable breadcrumb navigation component
 export const Breadcrumb = ({ items }: BreadcrumbProps) => {
   return (
     <nav className="mb-6">

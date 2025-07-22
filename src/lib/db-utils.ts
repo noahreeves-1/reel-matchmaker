@@ -8,10 +8,7 @@ import {
 } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 
-/**
- * Database utility functions for common operations
- * These will replace localStorage functionality step by step
- */
+// Database utility functions for common operations
 
 export async function getUserByEmail(email: string) {
   try {
@@ -27,7 +24,7 @@ export async function getUserByEmail(email: string) {
   }
 }
 
-// Rating operations (will replace localStorage rated movies)
+// Rating operations
 export async function getUserRating(userEmail: string, movieId: number) {
   try {
     // First get the user by email
@@ -63,7 +60,6 @@ export async function saveUserRating(
     const user = await getUserByEmail(userEmail);
     if (!user) return null;
 
-    // Check if movie exists, if not create a placeholder movie
     const existingMovie = await db
       .select()
       .from(movies)
@@ -71,7 +67,6 @@ export async function saveUserRating(
       .limit(1);
 
     if (!existingMovie[0]) {
-      // Create a placeholder movie for the rating
       await db.insert(movies).values({
         id: movieId,
         title: movieTitle || `Movie ${movieId}`,
@@ -82,11 +77,9 @@ export async function saveUserRating(
       });
     }
 
-    // Check if rating already exists
     const existingRating = await getUserRating(userEmail, movieId);
 
     if (existingRating) {
-      // Update existing rating
       const result = await db
         .update(userRatings)
         .set({
@@ -101,7 +94,6 @@ export async function saveUserRating(
 
       return result[0];
     } else {
-      // Create new rating
       const result = await db
         .insert(userRatings)
         .values({
@@ -158,7 +150,7 @@ export async function removeUserRating(userEmail: string, movieId: number) {
   }
 }
 
-// Want to watch operations (will replace localStorage want-to-watch list)
+// Want to watch operations
 export async function isInWantToWatch(userId: string, movieId: number) {
   try {
     const item = await db
@@ -289,7 +281,7 @@ export async function saveRecommendations(
     matchScore?: number;
     matchLevel?: "LOVE IT" | "LIKE IT" | "MAYBE" | "RISKY";
     enhancedReason?: string;
-    // Movie data fields (can be either camelCase or snake_case)
+
     posterPath?: string | null;
     poster_path?: string | null;
     backdropPath?: string | null;
@@ -351,7 +343,6 @@ export async function saveRecommendations(
           rec.productionCompanies || rec.production_companies,
       });
 
-      // Check if movie exists, if not create a complete movie record
       const existingMovie = await db
         .select()
         .from(movies)
@@ -360,7 +351,6 @@ export async function saveRecommendations(
 
       if (!existingMovie[0]) {
         console.log("🔄 DB: Creating new movie record for ID:", rec.id);
-        // Create a complete movie record with all available data
         await db.insert(movies).values({
           id: rec.id,
           title: rec.title,
@@ -398,7 +388,6 @@ export async function saveRecommendations(
         });
       } else {
         console.log("🔄 DB: Updating existing movie record for ID:", rec.id);
-        // Update existing movie with any new data we have
         await db
           .update(movies)
           .set({
@@ -557,10 +546,8 @@ export async function getLastRecommendations(
 
     console.log("🔄 DB: Found user with ID:", user.id);
 
-    // Get the last N recommendations with movie details
     const lastRecommendations = await db
       .select({
-        // Recommendation fields
         id: recommendations.id,
         userId: recommendations.userId,
         movieId: recommendations.movieId,
@@ -574,7 +561,6 @@ export async function getLastRecommendations(
         actedOn: recommendations.actedOn,
         createdAt: recommendations.createdAt,
         updatedAt: recommendations.updatedAt,
-        // Movie fields
         title: movies.title,
         overview: movies.overview,
         posterPath: movies.posterPath,
@@ -603,7 +589,6 @@ export async function getLastRecommendations(
       "recommendations"
     );
 
-    // Transform the data to match the MovieRecommendation interface
     const transformedRecommendations = lastRecommendations.map((rec) => ({
       id: rec.movieId,
       title: rec.title,
