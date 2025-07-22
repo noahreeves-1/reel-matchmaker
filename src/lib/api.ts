@@ -10,7 +10,7 @@
 // CURRENT USAGE: Movie fetching, search, details
 // ARCHITECTURE: Client → Next.js API → TMDB → Response
 
-import { TMDBResponse, TMDBMovie } from "./tmdb";
+import { TMDBResponse, TMDBMovie, TMDBGenresResponse } from "./tmdb";
 
 export const getPopularMovies = async (
   page: number = 1
@@ -60,5 +60,39 @@ export const getMovieDetails = async (movieId: number): Promise<TMDBMovie> => {
   }
 
   const data = await response.json();
+
+  return data;
+};
+
+export const getGenres = async (): Promise<TMDBGenresResponse> => {
+  const response = await fetch("/api/genres");
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(
+      errorData.error || `HTTP error! status: ${response.status}`
+    );
+  }
+
+  const data = await response.json();
+
+  return data;
+};
+
+export const getMoviesByGenre = async (
+  genreId: number,
+  page: number = 1
+): Promise<TMDBResponse> => {
+  const response = await fetch(`/api/genres/${genreId}?page=${page}`);
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(
+      errorData.error || `HTTP error! status: ${response.status}`
+    );
+  }
+
+  const data = await response.json();
+
   return data;
 };

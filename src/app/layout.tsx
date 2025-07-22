@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
+import { Header, Footer } from "@/components/layout";
 
 // Next.js Font Optimization: Inter font is optimized and self-hosted
 // This improves performance by avoiding external font requests
@@ -37,7 +38,13 @@ export default function RootLayout({
       <body className={inter.className}>
         {/* Providers: Client-side providers (React Query, etc.) must be in a separate component */}
         {/* This is because Server Components can't use hooks or browser APIs */}
-        <Providers>{children}</Providers>
+        <Providers>
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+            <Header />
+            <main>{children}</main>
+            <Footer />
+          </div>
+        </Providers>
       </body>
     </html>
   );

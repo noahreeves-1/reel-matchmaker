@@ -106,6 +106,15 @@ export interface TMDBResponse {
   total_results: number;
 }
 
+export interface TMDBGenre {
+  id: number;
+  name: string;
+}
+
+export interface TMDBGenresResponse {
+  genres: TMDBGenre[];
+}
+
 const getApiKey = (): string => {
   // Only use server-side API key for security
   const apiKey = process.env.TMDB_API_KEY || "";
@@ -160,5 +169,18 @@ export const searchMovies = async (
 export const getMovieDetails = async (movieId: number): Promise<TMDBMovie> => {
   return makeTMDBRequest<TMDBMovie>(
     `/movie/${movieId}?append_to_response=credits,videos,images,release_dates`
+  );
+};
+
+export const getMovieGenres = async (): Promise<TMDBGenresResponse> => {
+  return makeTMDBRequest<TMDBGenresResponse>("/genre/movie/list");
+};
+
+export const getMoviesByGenre = async (
+  genreId: number,
+  page: number = 1
+): Promise<TMDBResponse> => {
+  return makeTMDBRequest<TMDBResponse>(
+    `/discover/movie?with_genres=${genreId}&page=${page}&sort_by=popularity.desc`
   );
 };

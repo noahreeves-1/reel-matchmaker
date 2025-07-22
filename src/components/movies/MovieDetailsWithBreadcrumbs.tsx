@@ -49,6 +49,27 @@ export const MovieDetailsWithBreadcrumbs = ({
       } else if (sourcePath.startsWith("/movies/")) {
         // If coming from another movie page, add Popular Movies breadcrumb
         breadcrumbItems.push({ label: "Popular Movies", href: "/movies" });
+      } else if (sourcePath === "/genres") {
+        // If coming from the genres page, add Genres breadcrumb
+        breadcrumbItems.push({ label: "Genres", href: "/genres" });
+      } else if (sourcePath.startsWith("/genres/")) {
+        // If coming from a specific genre page, we need to get the genre name
+        // For now, we'll use a generic "Genre Movies" label
+        // In the future, we could pass the genre name as a prop or get it from the URL
+        const genreId = sourcePath.split("/")[2];
+        if (genreId && !isNaN(Number(genreId))) {
+          // Try to get genre name from sessionStorage if it was stored
+          const genreName = sessionStorage.getItem(`genre-${genreId}-name`);
+          if (genreName) {
+            breadcrumbItems.push({ label: "Genres", href: "/genres" });
+            breadcrumbItems.push({ label: genreName, href: sourcePath });
+          } else {
+            breadcrumbItems.push({ label: "Genres", href: "/genres" });
+            breadcrumbItems.push({ label: "Genre Movies", href: sourcePath });
+          }
+        } else {
+          breadcrumbItems.push({ label: "Genres", href: "/genres" });
+        }
       } else {
         // For any other path, default to Popular Movies
         breadcrumbItems.push({ label: "Popular Movies", href: "/movies" });

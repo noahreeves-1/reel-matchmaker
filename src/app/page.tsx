@@ -1,8 +1,6 @@
 import { Suspense } from "react";
 import { LoadingSkeleton } from "@/components/common";
-import { Header } from "@/components/layout/Header";
 import { Hero } from "@/components/layout/Hero";
-import { Footer } from "@/components/layout/Footer";
 import { HowItWorksSection } from "@/components/movies/HowItWorksSection";
 import { MovieApp } from "@/components/movies/MovieApp";
 
@@ -22,9 +20,6 @@ export const metadata = {
 export default function Home() {
   return (
     <>
-      {/* STATIC HEADER */}
-      <Header />
-
       {/* STATIC SECTIONS */}
       <Hero />
 
@@ -43,9 +38,6 @@ export default function Home() {
           </Suspense>
         </div>
       </section>
-
-      {/* FOOTER */}
-      <Footer />
     </>
   );
 }

@@ -58,6 +58,12 @@ export const Header = () => {
               Discover
             </Link>
             <Link
+              href="/genres"
+              className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+            >
+              Genres
+            </Link>
+            <Link
               href="/my-movies"
               className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             >
