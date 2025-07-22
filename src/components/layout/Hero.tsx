@@ -4,7 +4,7 @@ import Image from "next/image";
 // This component is now completely static with no interactive elements
 // Perfect for static site generation and optimal caching
 export const Hero = () => (
-  <div className="relative text-center py-36 lg:py-64 overflow-hidden">
+  <div className="relative text-center py-36 lg:py-48 overflow-hidden">
     {/* Background Image */}
     <div className="absolute inset-0">
       <Image
