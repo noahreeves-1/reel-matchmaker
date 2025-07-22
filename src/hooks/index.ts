@@ -10,5 +10,5 @@ export * from "./ui";
 // Authentication hooks - for managing auth state
 // (Using NextAuth.js v5 server-side auth + database-backed hooks)
 
-// Server data hooks - for server-side data fetching
-export * from "./server";
+// Note: Server-side data functions have been moved to @/lib/server-data.ts
+// This keeps hooks folder focused on client-side React hooks only

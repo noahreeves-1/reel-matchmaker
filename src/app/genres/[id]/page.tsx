@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { getInitialGenres, getMoviesByGenreData } from "@/hooks/server";
+import { getInitialGenres, getMoviesByGenreData } from "@/lib/server-functions";
 import {
   Breadcrumb,
   PageHeader,

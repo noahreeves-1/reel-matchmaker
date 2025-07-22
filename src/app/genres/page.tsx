@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { unstable_noStore } from "next/cache";
-import { getInitialGenres, getMoviesByGenreData } from "@/hooks/server";
+import { getInitialGenres, getMoviesByGenreData } from "@/lib/server-functions";
 import {
   Breadcrumb,
   PageHeader,

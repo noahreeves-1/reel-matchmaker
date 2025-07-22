@@ -1,5 +1,5 @@
 import { MyMoviesPage } from "@/components/movies/MyMoviesPage";
-import { getUserRatedMovies } from "@/lib/server-only";
+import { getUserRatedMovies } from "@/lib/server-functions";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 

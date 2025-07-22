@@ -1,18 +1,58 @@
+import { auth } from "@/auth";
+import type { UserInitialData } from "@/types/movie";
 import { TMDBResponse, TMDBMovie, TMDBGenresResponse } from "@/lib/tmdb";
 
-// SERVER-SIDE DATA FETCHING: Direct TMDB API calls for Server Components
-// This file provides server-side functions for fetching movie data during build/request time
+// SERVER-SIDE FUNCTIONS: All server-side operations for SSR/ISR
+// This file consolidates all server-side functions used in Server Components
 //
-// SCALING CONSIDERATIONS:
-// - TRADEOFFS: Direct API calls, no caching, potential rate limiting
-// - VERCEL OPTIMIZATIONS: Serverless functions, automatic scaling, global distribution
-// - SCALE BREAKERS: TMDB rate limits, API downtime, cold starts
-// - FUTURE IMPROVEMENTS: Add Redis caching, request batching, fallback data
+// TWO MAIN CATEGORIES:
+// 1. USER AUTHENTICATION & DATABASE OPERATIONS (uses NextAuth auth())
+// 2. EXTERNAL API CALLS (TMDB API calls)
 //
-// CURRENT USAGE: ISR page generation, server-side rendering
-// ARCHITECTURE: Server Component → Direct TMDB API → Response
+// USAGE: Server Components, API Routes, Server Actions
+// NEVER IMPORT IN CLIENT COMPONENTS
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+
+// ============================================================================
+// USER AUTHENTICATION & DATABASE OPERATIONS
+// ============================================================================
+
+/**
+ * Get user's rated movies and want-to-watch list from database
+ * Uses NextAuth's server-side auth() function for authentication
+ * Returns user-specific data for SSR
+ */
+export const getUserRatedMovies = async (): Promise<UserInitialData> => {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.email) {
+      return { ratings: [], wantToWatch: [] };
+    }
+
+    // Use dynamic imports like the API routes to avoid isTTY errors
+    const { getUserRatings, getWantToWatchList } = await import(
+      "@/lib/db-utils"
+    );
+
+    const userEmail = session.user.email;
+    const ratings = await getUserRatings(userEmail);
+    const wantToWatch = await getWantToWatchList(userEmail);
+
+    return {
+      ratings: ratings || [],
+      wantToWatch: wantToWatch || [],
+    };
+  } catch (error) {
+    console.error("Failed to fetch user movies:", error);
+    return { ratings: [], wantToWatch: [] };
+  }
+};
+
+// ============================================================================
+// EXTERNAL API CALLS (TMDB)
+// ============================================================================
 
 /**
  * Server-side function for fetching initial popular movies
