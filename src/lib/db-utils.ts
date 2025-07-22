@@ -6,7 +6,7 @@ import {
   wantToWatch,
   recommendations,
 } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 /**
  * Database utility functions for common operations
@@ -289,8 +289,35 @@ export async function saveRecommendations(
     matchScore?: number;
     matchLevel?: "LOVE IT" | "LIKE IT" | "MAYBE" | "RISKY";
     enhancedReason?: string;
+    // Movie data fields (can be either camelCase or snake_case)
     posterPath?: string | null;
+    poster_path?: string | null;
+    backdropPath?: string | null;
+    backdrop_path?: string | null;
     releaseDate?: string;
+    release_date?: string;
+    overview?: string;
+    vote_average?: number;
+    vote_count?: number;
+    revenue?: number;
+    popularity?: number;
+    runtime?: number;
+    status?: string;
+    tagline?: string;
+    budget?: number;
+    genres?: Array<{ id: number; name: string }>;
+    productionCompanies?: Array<{
+      id: number;
+      name: string;
+      logoPath: string | null;
+      originCountry: string;
+    }>;
+    production_companies?: Array<{
+      id: number;
+      name: string;
+      logo_path: string | null;
+      origin_country: string;
+    }>;
   }>
 ) {
   try {
@@ -301,7 +328,30 @@ export async function saveRecommendations(
     const savedRecommendations = [];
 
     for (const rec of recommendationData) {
-      // Check if movie exists, if not create a placeholder movie
+      console.log("🔄 DB: Processing recommendation data:", {
+        id: rec.id,
+        title: rec.title,
+        posterPath: rec.posterPath,
+        poster_path: rec.poster_path,
+        backdropPath: rec.backdropPath,
+        backdrop_path: rec.backdrop_path,
+        releaseDate: rec.releaseDate,
+        release_date: rec.release_date,
+        overview: rec.overview,
+        vote_average: rec.vote_average,
+        vote_count: rec.vote_count,
+        revenue: rec.revenue,
+        popularity: rec.popularity,
+        runtime: rec.runtime,
+        status: rec.status,
+        tagline: rec.tagline,
+        budget: rec.budget,
+        genres: rec.genres,
+        production_companies:
+          rec.productionCompanies || rec.production_companies,
+      });
+
+      // Check if movie exists, if not create a complete movie record
       const existingMovie = await db
         .select()
         .from(movies)
@@ -309,15 +359,100 @@ export async function saveRecommendations(
         .limit(1);
 
       if (!existingMovie[0]) {
-        // Create a placeholder movie for the recommendation
+        console.log("🔄 DB: Creating new movie record for ID:", rec.id);
+        // Create a complete movie record with all available data
         await db.insert(movies).values({
           id: rec.id,
           title: rec.title,
-          overview: "Movie created for recommendation",
-          posterPath: rec.posterPath,
-          releaseDate: rec.releaseDate,
+          overview: rec.overview || "Movie created for recommendation",
+          posterPath: rec.posterPath || rec.poster_path,
+          backdropPath: rec.backdropPath || rec.backdrop_path,
+          releaseDate: rec.releaseDate || rec.release_date,
+          voteAverage: rec.vote_average ? Number(rec.vote_average) : undefined,
+          voteCount: rec.vote_count,
+          revenue: rec.revenue,
+          popularity: rec.popularity ? Number(rec.popularity) : undefined,
+          runtime: rec.runtime,
+          status: rec.status,
+          tagline: rec.tagline,
+          budget: rec.budget,
+          genres: rec.genres,
+          productionCompanies: (() => {
+            const companies =
+              rec.productionCompanies || rec.production_companies;
+            if (!companies) return undefined;
+
+            // Convert snake_case to camelCase if needed
+            return companies.map((company) => ({
+              id: company.id,
+              name: company.name,
+              logoPath:
+                "logoPath" in company ? company.logoPath : company.logo_path,
+              originCountry:
+                "originCountry" in company
+                  ? company.originCountry
+                  : company.origin_country,
+            }));
+          })(),
           lastUpdated: new Date(),
         });
+      } else {
+        console.log("🔄 DB: Updating existing movie record for ID:", rec.id);
+        // Update existing movie with any new data we have
+        await db
+          .update(movies)
+          .set({
+            title: rec.title,
+            overview: rec.overview || existingMovie[0].overview,
+            posterPath:
+              rec.posterPath || rec.poster_path || existingMovie[0].posterPath,
+            backdropPath:
+              rec.backdropPath ||
+              rec.backdrop_path ||
+              existingMovie[0].backdropPath,
+            releaseDate:
+              rec.releaseDate ||
+              rec.release_date ||
+              existingMovie[0].releaseDate,
+            voteAverage: (() => {
+              const value = rec.vote_average ?? existingMovie[0].voteAverage;
+              return value !== null && value !== undefined
+                ? Number(value)
+                : value;
+            })(),
+            voteCount: rec.vote_count || existingMovie[0].voteCount,
+            revenue: rec.revenue || existingMovie[0].revenue,
+            popularity: (() => {
+              const value = rec.popularity ?? existingMovie[0].popularity;
+              return value !== null && value !== undefined
+                ? Number(value)
+                : value;
+            })(),
+            runtime: rec.runtime || existingMovie[0].runtime,
+            status: rec.status || existingMovie[0].status,
+            tagline: rec.tagline || existingMovie[0].tagline,
+            budget: rec.budget || existingMovie[0].budget,
+            genres: rec.genres || existingMovie[0].genres,
+            productionCompanies: (() => {
+              const companies =
+                rec.productionCompanies || rec.production_companies;
+              if (!companies) return existingMovie[0].productionCompanies;
+
+              // Convert snake_case to camelCase if needed
+              return companies.map((company) => ({
+                id: company.id,
+                name: company.name,
+                logoPath:
+                  "logoPath" in company ? company.logoPath : company.logo_path,
+                originCountry:
+                  "originCountry" in company
+                    ? company.originCountry
+                    : company.origin_country,
+              }));
+            })(),
+            lastUpdated: new Date(),
+          })
+          .where(eq(movies.id, rec.id));
       }
 
       // Check if recommendation already exists for this user and movie
@@ -394,6 +529,110 @@ export async function getUserRecommendations(userEmail: string) {
     return userRecommendations;
   } catch (error) {
     console.error("Error fetching user recommendations:", error);
+    return [];
+  }
+}
+
+// Get the last 5 recommendations with movie details for a user
+// This function joins the recommendations table with the movies table
+// to get complete movie information for display
+export async function getLastRecommendations(
+  userEmail: string,
+  limit: number = 5
+) {
+  try {
+    console.log(
+      "🔄 DB: getLastRecommendations called for user:",
+      userEmail,
+      "limit:",
+      limit
+    );
+
+    // First get the user by email
+    const user = await getUserByEmail(userEmail);
+    if (!user) {
+      console.log("❌ DB: User not found for email:", userEmail);
+      return [];
+    }
+
+    console.log("🔄 DB: Found user with ID:", user.id);
+
+    // Get the last N recommendations with movie details
+    const lastRecommendations = await db
+      .select({
+        // Recommendation fields
+        id: recommendations.id,
+        userId: recommendations.userId,
+        movieId: recommendations.movieId,
+        reason: recommendations.reason,
+        matchScore: recommendations.matchScore,
+        matchLevel: recommendations.matchLevel,
+        personalizedReason: recommendations.personalizedReason,
+        enhancedReason: recommendations.enhancedReason,
+        generatedAt: recommendations.generatedAt,
+        seen: recommendations.seen,
+        actedOn: recommendations.actedOn,
+        createdAt: recommendations.createdAt,
+        updatedAt: recommendations.updatedAt,
+        // Movie fields
+        title: movies.title,
+        overview: movies.overview,
+        posterPath: movies.posterPath,
+        backdropPath: movies.backdropPath,
+        releaseDate: movies.releaseDate,
+        voteAverage: movies.voteAverage,
+        voteCount: movies.voteCount,
+        popularity: movies.popularity,
+        runtime: movies.runtime,
+        status: movies.status,
+        tagline: movies.tagline,
+        budget: movies.budget,
+        revenue: movies.revenue,
+        genres: movies.genres,
+        productionCompanies: movies.productionCompanies,
+      })
+      .from(recommendations)
+      .innerJoin(movies, eq(recommendations.movieId, movies.id))
+      .where(eq(recommendations.userId, user.id))
+      .orderBy(desc(recommendations.updatedAt))
+      .limit(limit);
+
+    console.log(
+      "🔄 DB: Raw database results:",
+      lastRecommendations.length,
+      "recommendations"
+    );
+
+    // Transform the data to match the MovieRecommendation interface
+    const transformedRecommendations = lastRecommendations.map((rec) => ({
+      id: rec.movieId,
+      title: rec.title,
+      poster_path: rec.posterPath,
+      release_date: rec.releaseDate || "",
+      overview: rec.overview || "",
+      vote_average: rec.voteAverage ? Number(rec.voteAverage) : 0,
+      vote_count: rec.voteCount || 0,
+      reason: rec.reason,
+      personalizedReason: rec.personalizedReason || undefined,
+      matchScore: rec.matchScore || undefined,
+      matchLevel: rec.matchLevel as
+        | "LOVE IT"
+        | "LIKE IT"
+        | "MAYBE"
+        | "RISKY"
+        | undefined,
+      enhancedReason: rec.enhancedReason || undefined,
+      revenue: rec.revenue || undefined,
+      popularity: rec.popularity ? Number(rec.popularity) : undefined,
+    }));
+
+    console.log(
+      "🔄 DB: Transformed recommendations:",
+      transformedRecommendations
+    );
+    return transformedRecommendations;
+  } catch (error) {
+    console.error("❌ DB: Error fetching last recommendations:", error);
     return [];
   }
 }

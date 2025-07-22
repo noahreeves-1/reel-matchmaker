@@ -2,7 +2,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { getPopularMovies, searchMovies } from "@/lib/api";
 import { TMDBResponse } from "@/lib/tmdb";
 import { CACHE_CONFIG } from "@/lib/constants";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 // MOVIE QUERY HOOKS: React Query integration for movie data fetching
 // This file provides hooks for fetching popular movies and search results with intelligent caching
@@ -82,13 +82,13 @@ export const useMovies = (initialData?: TMDBResponse) => {
     ? searchMoviesQuery
     : popularMoviesQuery;
 
-  const performSearch = (query: string) => {
+  const performSearch = useCallback((query: string) => {
     setSearchQuery(query);
-  };
+  }, []);
 
-  const clearSearch = () => {
+  const clearSearch = useCallback(() => {
     setSearchQuery("");
-  };
+  }, []);
 
   // Flatten all pages into a single array for easy consumption
   const movies = activeQuery.data?.pages.flatMap((page) => page.results) || [];

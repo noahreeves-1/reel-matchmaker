@@ -15,6 +15,13 @@
       "when": 1753055467960,
       "tag": "0001_modern_silver_centurion",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1753144752778,
+      "tag": "0002_magenta_magma",
+      "breakpoints": true
     }
   ]
 }

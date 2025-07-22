@@ -12,8 +12,7 @@ export const authConfig = {
       const onDashboard = nextUrl.pathname.startsWith("/my-movies");
 
       if (onDashboard) return loggedIn; // gate dashboard
-      if (loggedIn) return Response.redirect(new URL("/my-movies", nextUrl));
-      return true; // public routes stay public
+      return true; // public routes stay public, logged-in users can access home page
     },
   },
   providers: [], // will add Credentials next

@@ -13,7 +13,7 @@ export interface RatedMovie {
 export interface WantToWatchMovie {
   id: number;
   title: string;
-  poster_path?: string;
+  poster_path?: string | null;
   release_date?: string;
   addedAt: string;
 }

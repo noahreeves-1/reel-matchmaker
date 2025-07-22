@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getUserRecommendations } from "@/lib/db-utils";
+import { getUserRecommendations, getLastRecommendations } from "@/lib/db-utils";
 
 // RENDERING STRATEGY: Server-Side Rendering (SSR) with Database Queries
 // - This API route retrieves saved recommendations from the database
@@ -22,27 +22,54 @@ import { getUserRecommendations } from "@/lib/db-utils";
 // - FUTURE IMPROVEMENTS: Redis caching, database indexing, pagination
 
 // GET /api/recommendations - Get user's saved recommendations
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    console.log("🔄 API: /api/recommendations called");
+
     // Server-side authentication using NextAuth.js
     const session = await auth();
+    console.log(
+      "🔄 API: Session data:",
+      session?.user?.email ? "User authenticated" : "No user"
+    );
 
     if (!session?.user?.email) {
+      console.log("❌ API: Unauthorized - no session or email");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const userEmail = session.user.email;
+    console.log("🔄 API: User email:", userEmail);
 
-    // Get user's saved recommendations from database
-    const savedRecommendations = await getUserRecommendations(userEmail);
+    // Parse query parameters
+    const { searchParams } = new URL(request.url);
+    const limit = searchParams.get("limit");
+    const lastOnly = searchParams.get("last") === "true";
+
+    console.log("🔄 API: Query params - limit:", limit, "lastOnly:", lastOnly);
+
+    let recommendations;
+
+    if (lastOnly) {
+      // Get only the last N recommendations with movie details
+      const limitNumber = limit ? parseInt(limit, 10) : 5;
+      console.log("🔄 API: Getting last", limitNumber, "recommendations");
+      recommendations = await getLastRecommendations(userEmail, limitNumber);
+    } else {
+      // Get all recommendations (original behavior)
+      console.log("🔄 API: Getting all recommendations");
+      recommendations = await getUserRecommendations(userEmail);
+    }
+
+    console.log("🔄 API: Found", recommendations.length, "recommendations");
 
     return NextResponse.json({
       success: true,
-      recommendations: savedRecommendations,
-      count: savedRecommendations.length,
+      recommendations,
+      count: recommendations.length,
     });
   } catch (error) {
-    console.error("Error fetching user recommendations:", error);
+    console.error("❌ API: Error fetching user recommendations:", error);
 
     return NextResponse.json(
       {

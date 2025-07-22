@@ -51,6 +51,20 @@ interface Recommendation extends TMDBMovie {
   matchScore?: number;
   matchLevel?: "LOVE IT" | "LIKE IT" | "MAYBE" | "RISKY";
   enhancedReason?: string;
+  // Additional movie fields from full TMDB details
+  backdrop_path?: string | null;
+  overview?: string;
+  runtime?: number;
+  status?: string;
+  tagline?: string;
+  budget?: number;
+  genres?: Array<{ id: number; name: string }>;
+  production_companies?: Array<{
+    id: number;
+    name: string;
+    logo_path: string | null;
+    origin_country: string;
+  }>;
 }
 
 // Extended RatedMovie interface for API usage (unused - keeping for future use)
@@ -144,17 +158,28 @@ async function searchMovieByTitle(
       // Get full movie details including revenue, vote counts, etc.
       const fullDetails = await getMovieDetails(movie.id);
 
+      // Use fullDetails if available, otherwise fall back to search result
+      const movieData = fullDetails || movie;
+
       return {
-        id: movie.id,
-        title: movie.title,
+        id: movieData.id,
+        title: movieData.title,
         reason: "", // Will be filled in by the calling function
         personalizedReason: "", // Will be filled in by the calling function
-        poster_path: movie.poster_path,
-        release_date: movie.release_date,
-        vote_average: fullDetails?.vote_average || movie.vote_average,
-        vote_count: fullDetails?.vote_count || movie.vote_count,
-        revenue: fullDetails?.revenue,
-        popularity: fullDetails?.popularity || movie.popularity,
+        poster_path: movieData.poster_path,
+        backdrop_path: movieData.backdrop_path,
+        release_date: movieData.release_date,
+        overview: movieData.overview,
+        vote_average: movieData.vote_average,
+        vote_count: movieData.vote_count,
+        revenue: movieData.revenue,
+        popularity: movieData.popularity,
+        runtime: movieData.runtime,
+        status: movieData.status,
+        tagline: movieData.tagline,
+        budget: movieData.budget,
+        genres: movieData.genres,
+        production_companies: movieData.production_companies,
       };
     }
 
@@ -280,6 +305,18 @@ export async function POST(req: Request) {
     }: { ratedMovies: RatedMovie[]; wantToWatchList?: WantToWatchMovie[] } =
       body;
 
+    // Debug logging to verify we're receiving the updated rated movies
+    console.log("🎯 API: Received rated movies count:", ratedMovies.length);
+    console.log(
+      "🎯 API: Rated movies:",
+      ratedMovies.map((m) => `${m.title} (${m.rating}/10)`)
+    );
+    console.log("🎯 API: Want to watch count:", wantToWatchList.length);
+    console.log(
+      "🎯 API: Want to watch movies:",
+      wantToWatchList.map((m) => m.title)
+    );
+
     if (!ratedMovies || ratedMovies.length === 0) {
       return new Response(
         JSON.stringify({ error: "No rated movies provided" }),
@@ -318,6 +355,16 @@ export async function POST(req: Request) {
           : "Unknown";
         return `${movie.title.toLowerCase().trim()} (${year})`;
       })
+    );
+
+    // Debug logging for filtering keys
+    console.log(
+      "🎯 API: Rated movie keys for filtering:",
+      Array.from(ratedMovieKeys)
+    );
+    console.log(
+      "🎯 API: Want to watch keys for filtering:",
+      Array.from(wantToWatchKeys)
     );
 
     // Create prompt for AI recommendations - include ALL rated movies, not just liked ones
@@ -376,7 +423,7 @@ Make the personalizedReason informative and engaging. Include: 1) A brief plot s
         },
       ],
       temperature: 0.8,
-      maxTokens: 800,
+      maxTokens: 2000,
     });
 
     console.log("✅ API: OpenAI response received");

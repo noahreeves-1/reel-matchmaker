@@ -100,8 +100,19 @@ export const useWantToWatchDb = (initialData?: {
     error: movieDetailsError,
   } = useMovieDetailsBatch(movieIds);
 
+  // Merge movie details with want-to-watch movies to get actual titles
+  const wantToWatchListWithDetails = wantToWatchList.map((movie) => {
+    const details = movieDetails[movie.id];
+    return {
+      ...movie,
+      title: details?.title || movie.title, // Use actual title if available
+      poster_path: details?.poster_path || movie.poster_path || null,
+      release_date: details?.release_date || movie.release_date || undefined,
+    };
+  });
+
   return {
-    wantToWatchList,
+    wantToWatchList: wantToWatchListWithDetails, // Return merged data with actual titles
     movieDetails,
     isLoading: isLoading || movieDetailsLoading,
     error: error?.message || movieDetailsError?.message || null,

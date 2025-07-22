@@ -1,29 +1,29 @@
 import { relations } from "drizzle-orm/relations";
-import { users, userRatings, movies, wantToWatch, recommendations, watchHistory } from "./schema";
+import { users, recommendations, movies, wantToWatch, watchHistory, userRatings } from "./schema";
 
-export const userRatingsRelations = relations(userRatings, ({one}) => ({
+export const recommendationsRelations = relations(recommendations, ({one}) => ({
 	user: one(users, {
-		fields: [userRatings.userId],
+		fields: [recommendations.userId],
 		references: [users.id]
 	}),
 	movie: one(movies, {
-		fields: [userRatings.movieId],
+		fields: [recommendations.movieId],
 		references: [movies.id]
 	}),
 }));
 
 export const usersRelations = relations(users, ({many}) => ({
-	userRatings: many(userRatings),
-	wantToWatches: many(wantToWatch),
 	recommendations: many(recommendations),
+	wantToWatches: many(wantToWatch),
 	watchHistories: many(watchHistory),
+	userRatings: many(userRatings),
 }));
 
 export const moviesRelations = relations(movies, ({many}) => ({
-	userRatings: many(userRatings),
-	wantToWatches: many(wantToWatch),
 	recommendations: many(recommendations),
+	wantToWatches: many(wantToWatch),
 	watchHistories: many(watchHistory),
+	userRatings: many(userRatings),
 }));
 
 export const wantToWatchRelations = relations(wantToWatch, ({one}) => ({
@@ -37,17 +37,6 @@ export const wantToWatchRelations = relations(wantToWatch, ({one}) => ({
 	}),
 }));
 
-export const recommendationsRelations = relations(recommendations, ({one}) => ({
-	user: one(users, {
-		fields: [recommendations.userId],
-		references: [users.id]
-	}),
-	movie: one(movies, {
-		fields: [recommendations.movieId],
-		references: [movies.id]
-	}),
-}));
-
 export const watchHistoryRelations = relations(watchHistory, ({one}) => ({
 	user: one(users, {
 		fields: [watchHistory.userId],
@@ -55,6 +44,17 @@ export const watchHistoryRelations = relations(watchHistory, ({one}) => ({
 	}),
 	movie: one(movies, {
 		fields: [watchHistory.movieId],
+		references: [movies.id]
+	}),
+}));
+
+export const userRatingsRelations = relations(userRatings, ({one}) => ({
+	user: one(users, {
+		fields: [userRatings.userId],
+		references: [users.id]
+	}),
+	movie: one(movies, {
+		fields: [userRatings.movieId],
 		references: [movies.id]
 	}),
 }));

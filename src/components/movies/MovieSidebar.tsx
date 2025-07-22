@@ -35,14 +35,18 @@ export const MovieSidebar = ({ movie }: MovieSidebarProps) => {
             <div className="flex items-center gap-2">
               <span className="text-yellow-500">⭐</span>
               <span className="font-semibold">
-                {movie.vote_average.toFixed(1)}/10
+                {movie.vote_average !== null && movie.vote_average !== undefined
+                  ? `${movie.vote_average.toFixed(1)}/10`
+                  : "N/A"}
               </span>
             </div>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-slate-600 dark:text-slate-400">Votes</span>
             <span className="font-semibold">
-              {movie.vote_count.toLocaleString()}
+              {movie.vote_count !== null && movie.vote_count !== undefined
+                ? movie.vote_count.toLocaleString()
+                : "N/A"}
             </span>
           </div>
           {movie.runtime && (

@@ -120,6 +120,20 @@ export const useRatedMoviesDb = (initialData?: { ratings: UserRating[] }) => {
     error: movieDetailsError,
   } = useMovieDetailsBatch(movieIds);
 
+  // Merge movie details with rated movies to get actual titles
+  const ratedMoviesWithDetails = ratedMovies.map((movie) => {
+    const details = movieDetails[movie.id];
+    return {
+      ...movie,
+      title: details?.title || movie.title, // Use actual title if available
+      poster_path: details?.poster_path || null,
+      release_date: details?.release_date || undefined,
+      overview: details?.overview || "",
+      vote_average: details?.vote_average || 0,
+      vote_count: details?.vote_count || 0,
+    };
+  });
+
   const openConfirmDialog = (movieId: number, movieTitle: string) => {
     setConfirmDialog({
       isOpen: true,
@@ -137,7 +151,7 @@ export const useRatedMoviesDb = (initialData?: { ratings: UserRating[] }) => {
   };
 
   return {
-    ratedMovies,
+    ratedMovies: ratedMoviesWithDetails, // Return merged data with actual titles
     movieDetails,
     isLoading: isLoading || movieDetailsLoading,
     error: error?.message || movieDetailsError?.message || null,

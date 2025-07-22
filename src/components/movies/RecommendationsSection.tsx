@@ -29,9 +29,11 @@ interface RecommendationsSectionProps {
   ratedMoviesCount: number;
   ratedMovies: RatedMovie[];
   wantToWatchCount?: number;
+  wantToWatchList?: { id: number }[];
   onGenerateRecommendations: () => void;
   onRateMovie: (movieId: number, rating: number) => void;
   isLoading?: boolean;
+  isLoadingLastRecommendations?: boolean;
   recommendations?: MovieRecommendation[];
   ratingLoadingStates?: Record<number, boolean>;
   wantToWatchLoadingStates?: Record<number, boolean>;
@@ -45,9 +47,11 @@ export const RecommendationsSection = ({
   ratedMoviesCount,
   ratedMovies,
   wantToWatchCount = 0,
+  wantToWatchList = [],
   onGenerateRecommendations,
   onRateMovie,
   isLoading = false,
+  isLoadingLastRecommendations = false,
   recommendations = [],
   ratingLoadingStates = {},
   wantToWatchLoadingStates = {},
@@ -70,6 +74,23 @@ export const RecommendationsSection = ({
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Log component state for debugging
+  useEffect(() => {
+    console.log("🔄 RecommendationsSection: Component state:", {
+      isLoading,
+      isLoadingLastRecommendations,
+      hasRecommendations,
+      recommendationsCount: recommendations.length,
+      ratedMoviesCount,
+    });
+  }, [
+    isLoading,
+    isLoadingLastRecommendations,
+    hasRecommendations,
+    recommendations.length,
+    ratedMoviesCount,
+  ]);
 
   const handleRateMovie = (
     movie: {
@@ -169,15 +190,16 @@ export const RecommendationsSection = ({
                 <>
                   Based on your{" "}
                   <span className="font-bold text-white">
-                    {ratedMoviesCount} Rated movies
+                    {ratedMoviesCount} Rated
                   </span>
                   {wantToWatchCount > 0 && (
                     <>
                       {" "}
-                      and{" "}
+                      movies, and{" "}
                       <span className="font-bold text-white">
-                        {wantToWatchCount} Want to Watch items
-                      </span>
+                        {wantToWatchCount} Want to Watch
+                      </span>{" "}
+                      movies
                     </>
                   )}
                 </>
@@ -227,80 +249,122 @@ export const RecommendationsSection = ({
           />
         )}
 
-        {!isLoading && !hasRecommendations && ratedMoviesCount === 0 && (
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg p-8 border border-amber-200 dark:border-amber-700 text-center">
-            <div className="text-amber-500 mb-4">
+        {isLoadingLastRecommendations && (
+          <div className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-800 dark:to-gray-800 rounded-lg p-8 border border-slate-200 dark:border-slate-700 text-center">
+            <div className="text-slate-500 dark:text-slate-400 mb-4">
               <svg
-                className="w-16 h-16 mx-auto"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-amber-900 dark:text-amber-100 mb-2">
-              Rate Some Movies First
-            </h3>
-            <p className="text-amber-700 dark:text-amber-300 mb-4">
-              To get personalized AI recommendations, you need to rate at least
-              3 movies first. Scroll down to rate some movies you've watched.
-            </p>
-            <div className="flex items-center justify-center space-x-2 text-sm text-amber-600 dark:text-amber-400">
-              <span>⭐</span>
-              <span>Rate movies you've watched</span>
-              <span>•</span>
-              <span>🎯</span>
-              <span>Help AI understand your taste</span>
-              <span>•</span>
-              <span>🤖</span>
-              <span>Get personalized recommendations</span>
-            </div>
-          </div>
-        )}
-
-        {!isLoading && !hasRecommendations && ratedMoviesCount > 0 && (
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-8 border border-blue-200 dark:border-blue-700 text-center">
-            <div className="text-blue-500 mb-4">
-              <svg
-                className="w-16 h-16 mx-auto"
-                fill="currentColor"
-                viewBox="0 0 20 20"
+                className="w-16 h-16 mx-auto animate-spin"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
                 <path
-                  fillRule="evenodd"
-                  d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                  clipRule="evenodd"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                 />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-100 mb-2">
-              Ready for AI Recommendations!
+            <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
+              Loading Your Previous Recommendations
             </h3>
-            <p className="text-blue-700 dark:text-blue-300 mb-4">
-              You've rated {ratedMoviesCount} movies. Click the button above to
-              get personalized AI recommendations based on your taste.
+            <p className="text-slate-600 dark:text-slate-300 mb-4">
+              Fetching your last AI recommendations...
             </p>
-            <div className="flex items-center justify-center space-x-2 text-sm text-blue-600 dark:text-blue-400">
-              <span>🤖</span>
-              <span>AI will analyze your preferences</span>
+            <div className="flex items-center justify-center space-x-2 text-sm text-slate-500 dark:text-slate-400">
+              <span>🔄</span>
+              <span>Loading from database</span>
               <span>•</span>
-              <span>🎯</span>
-              <span>Find movies you'll love</span>
-              <span>•</span>
-              <span>⚡</span>
-              <span>Takes about 10-15 seconds</span>
+              <span>💾</span>
+              <span>Retrieving your matches</span>
             </div>
           </div>
         )}
 
-        {!isLoading && hasRecommendations && (
+        {!isLoading &&
+          !isLoadingLastRecommendations &&
+          !hasRecommendations &&
+          ratedMoviesCount === 0 && (
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg p-8 border border-amber-200 dark:border-amber-700 text-center">
+              <div className="text-amber-500 mb-4">
+                <svg
+                  className="w-16 h-16 mx-auto"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-amber-900 dark:text-amber-100 mb-2">
+                Rate Some Movies First
+              </h3>
+              <p className="text-amber-700 dark:text-amber-300 mb-4">
+                To get personalized AI recommendations, you need to rate at
+                least 3 movies first. Scroll down to rate some movies you've
+                watched.
+              </p>
+              <div className="flex items-center justify-center space-x-2 text-sm text-amber-600 dark:text-amber-400">
+                <span>⭐</span>
+                <span>Rate movies you've watched</span>
+                <span>•</span>
+                <span>🎯</span>
+                <span>Help AI understand your taste</span>
+                <span>•</span>
+                <span>🤖</span>
+                <span>Get personalized recommendations</span>
+              </div>
+            </div>
+          )}
+
+        {!isLoading &&
+          !isLoadingLastRecommendations &&
+          !hasRecommendations &&
+          ratedMoviesCount > 0 && (
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-8 border border-blue-200 dark:border-blue-700 text-center">
+              <div className="text-blue-500 mb-4">
+                <svg
+                  className="w-16 h-16 mx-auto"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                Ready for AI Recommendations!
+              </h3>
+              <p className="text-blue-700 dark:text-blue-300 mb-4">
+                You've rated {ratedMoviesCount} movies. Click the button above
+                to get personalized AI recommendations based on your taste.
+              </p>
+              <div className="flex items-center justify-center space-x-2 text-sm text-blue-600 dark:text-blue-400">
+                <span>🤖</span>
+                <span>AI will analyze your preferences</span>
+                <span>•</span>
+                <span>🎯</span>
+                <span>Find movies you'll love</span>
+                <span>•</span>
+                <span>⚡</span>
+                <span>Takes about 10-15 seconds</span>
+              </div>
+            </div>
+          )}
+
+        {!isLoading && !isLoadingLastRecommendations && hasRecommendations && (
           <div>
             <div className="space-y-6">
               {recommendations.map((rec, index) => {
                 const userRating = ratedMovies.find(
                   (rm) => rm.id === rec.id
                 )?.rating;
-                const isInWantToWatch = false; // This would come from props
+                const isInWantToWatch = wantToWatchList.some(
+                  (wtw) => wtw.id === rec.id
+                );
                 const isRatingLoading = ratingLoadingStates[rec.id] || false;
                 const isWantToWatchLoading =
                   wantToWatchLoadingStates[rec.id] || false;
@@ -354,15 +418,18 @@ export const RecommendationsSection = ({
                                   {new Date(rec.release_date).getFullYear()}
                                 </span>
                               )}
-                              {rec.vote_average && (
-                                <div className="flex items-center gap-1">
-                                  <span className="text-yellow-500">⭐</span>
-                                  <span>{rec.vote_average.toFixed(1)}/10</span>
-                                  {voteCountFormatted && (
-                                    <span>({voteCountFormatted})</span>
-                                  )}
-                                </div>
-                              )}
+                              {rec.vote_average !== null &&
+                                rec.vote_average !== undefined && (
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-yellow-500">⭐</span>
+                                    <span>
+                                      {rec.vote_average.toFixed(1)}/10
+                                    </span>
+                                    {voteCountFormatted && (
+                                      <span>({voteCountFormatted})</span>
+                                    )}
+                                  </div>
+                                )}
                               {revenueFormatted && (
                                 <span className="text-green-600 dark:text-green-400">
                                   {revenueFormatted}

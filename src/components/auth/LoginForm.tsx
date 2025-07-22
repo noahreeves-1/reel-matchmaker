@@ -51,7 +51,7 @@ export function LoginForm() {
       } else {
         // Successful login - programmatic navigation with refresh
         // router.refresh() ensures fresh data after authentication
-        router.push("/my-movies");
+        router.push("/");
         router.refresh();
       }
     } catch {

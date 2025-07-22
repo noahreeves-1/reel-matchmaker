@@ -42,6 +42,7 @@ export const MovieApp = () => {
   const {
     recommendations,
     isGeneratingRecommendations,
+    isLoadingLastRecommendations,
     generateRecommendations,
   } = useRecommendations(ratedMovies, wantToWatchList);
 
@@ -226,6 +227,7 @@ export const MovieApp = () => {
           ratedMoviesCount={ratedMovies.length}
           ratedMovies={ratedMovies}
           wantToWatchCount={wantToWatchList.length}
+          wantToWatchList={wantToWatchList}
           onGenerateRecommendations={generateRecommendations}
           onRateMovie={handleRateMovie}
           isLoading={isGeneratingRecommendations}
@@ -233,6 +235,7 @@ export const MovieApp = () => {
           ratingLoadingStates={{}}
           wantToWatchLoadingStates={{}}
           onToggleWantToWatch={handleToggleWantToWatch}
+          isLoadingLastRecommendations={isLoadingLastRecommendations}
         />
 
         {/* Movie Grid Section */}

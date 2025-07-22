@@ -6,6 +6,7 @@ import {
   timestamp,
   uuid,
   jsonb,
+  numeric,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -35,9 +36,15 @@ export const movies = pgTable("movies", {
   posterPath: text("poster_path"),
   backdropPath: text("backdrop_path"),
   releaseDate: text("release_date"),
-  voteAverage: integer("vote_average"),
+  voteAverage: numeric("vote_average", {
+    precision: 3,
+    scale: 1,
+  }).$type<number>(), // Store as numeric to handle TMDB's 0-10 scale
   voteCount: integer("vote_count"),
-  popularity: integer("popularity"),
+  popularity: numeric("popularity", {
+    precision: 10,
+    scale: 4,
+  }).$type<number>(), // TMDB popularity can be numeric
   runtime: integer("runtime"),
   status: text("status"),
   tagline: text("tagline"),
@@ -49,8 +56,10 @@ export const movies = pgTable("movies", {
     Array<{
       id: number;
       name: string;
-      logoPath: string | null;
-      originCountry: string;
+      logoPath?: string | null;
+      logo_path?: string | null;
+      originCountry?: string;
+      origin_country?: string;
     }>
   >(),
   // Track when we last updated this movie from TMDB
