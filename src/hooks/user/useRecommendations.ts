@@ -6,15 +6,13 @@ import {
 } from "@/types/movie";
 import { handleApiError } from "@/lib/errorHandling";
 
-// useRecommendations Hook: Manages AI-powered movie recommendations
+// Manages AI-powered movie recommendations
 // This hook encapsulates all the logic for generating and managing recommendations
 // It accepts rated movies and want-to-watch list as parameters to ensure consistency
 export const useRecommendations = (
   ratedMovies: RatedMovie[] = [],
   wantToWatchList: WantToWatchMovie[] = []
 ) => {
-  // Local State: Manage recommendations and loading state
-  // This state is specific to this hook and doesn't persist
   const [recommendations, setRecommendations] = useState<MovieRecommendation[]>(
     []
   );
@@ -23,7 +21,6 @@ export const useRecommendations = (
   const [isLoadingLastRecommendations, setIsLoadingLastRecommendations] =
     useState(false);
 
-  // Load last recommendations on mount
   useEffect(() => {
     const loadLastRecommendations = async () => {
       console.log(
@@ -66,7 +63,6 @@ export const useRecommendations = (
           "❌ useRecommendations: Error loading last recommendations:",
           error
         );
-        // Don't throw error here - this is just for loading previous recommendations
       } finally {
         console.log(
           "🔄 useRecommendations: Finished loading last recommendations"
@@ -76,20 +72,12 @@ export const useRecommendations = (
     };
 
     loadLastRecommendations();
-  }, []); // Only run on mount
+  }, []);
 
-  // generateRecommendations: Main function to get AI recommendations
-  // This function:
-  // 1. Sends user's rated movies and want-to-watch list to the AI
-  // 2. Handles loading states
-  // 3. Uses proper error handling with custom error types
-  // 4. Reloads the latest recommendations from database after generation
   const generateRecommendations = async (): Promise<void> => {
     setIsGeneratingRecommendations(true);
 
     try {
-      // API Call: Send user data to our recommendation API
-      // The API uses AI to generate personalized movie suggestions
       const response = await fetch("/api/recommend", {
         method: "POST",
         headers: {
@@ -103,7 +91,6 @@ export const useRecommendations = (
 
       if (!response.ok) {
         const errorData = await response.json();
-        // Custom Error: Use our error handling system for better debugging
         throw new Error(
           handleApiError(
             errorData.error || "Failed to generate recommendations"
@@ -113,11 +100,8 @@ export const useRecommendations = (
 
       const data = await response.json();
 
-      // Update local state with the new recommendations
       setRecommendations(data);
 
-      // Also reload the latest recommendations from database to ensure consistency
-      // This ensures we have the most up-to-date data after saving to database
       console.log(
         "🔄 useRecommendations: Reloading latest recommendations from database..."
       );
@@ -135,11 +119,8 @@ export const useRecommendations = (
         }
       }
     } catch (error) {
-      // Error Propagation: Re-throw errors to be handled by the component
-      // This allows components to show user-friendly error messages
       throw new Error(handleApiError(error));
     } finally {
-      // Cleanup: Always reset loading state, even if there's an error
       setIsGeneratingRecommendations(false);
     }
   };

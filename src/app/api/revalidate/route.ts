@@ -1,28 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 
-// RENDERING STRATEGY: Server-Side Rendering (SSR) with Cache Management
-// - This API route provides manual cache invalidation for Next.js ISR and fetch caching
-// - Uses Next.js revalidateTag function for selective cache invalidation
-// - Benefits: Manual cache control, data consistency, selective invalidation
-// - Perfect for: Cache management when data changes need immediate reflection
-// - Why SSR with cache management? Cache invalidation must happen server-side
-//
-// NEXT.JS OPTIMIZATIONS:
-// - Selective cache invalidation with revalidateTag
-// - Tag-based cache management for granular control
-// - Minimal performance impact - only invalidates specific tags
-// - GET endpoint for cache status checking
-// - Error handling for invalid cache operations
-//
-// SCALING CONSIDERATIONS:
-// - TRADEOFFS: Manual control vs. automatic invalidation, potential cache misses
-// - VERCEL OPTIMIZATIONS: Selective cache invalidation, minimal performance impact
-// - SCALE BREAKERS: Too frequent invalidations, cache stampede
-// - FUTURE IMPROVEMENTS: Rate limiting, automatic invalidation strategies
-//
-// CURRENT USAGE: Manual cache refresh, data consistency management
-// ARCHITECTURE: Client → API Route → Next.js Cache → Invalidation
+// Cache invalidation API route for Next.js ISR and fetch caching
+// Uses selective cache invalidation with revalidateTag for granular control
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,8 +16,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Revalidate the specific cache tag
-    // This triggers regeneration of all cached data with this tag
     revalidateTag(tag);
 
     return NextResponse.json({
@@ -58,7 +36,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET method to check cache status and provide usage information
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const tag = searchParams.get("tag");

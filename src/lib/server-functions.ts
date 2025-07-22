@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import type { UserInitialData } from "@/types/movie";
 import { TMDBResponse, TMDBMovie, TMDBGenresResponse } from "@/lib/tmdb";
 
-// SERVER-SIDE FUNCTIONS: All server-side operations for SSR/ISR
+// All server-side operations for SSR/ISR
 // This file consolidates all server-side functions used in Server Components
 //
 // TWO MAIN CATEGORIES:
@@ -14,15 +14,11 @@ import { TMDBResponse, TMDBMovie, TMDBGenresResponse } from "@/lib/tmdb";
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
-// ============================================================================
 // USER AUTHENTICATION & DATABASE OPERATIONS
-// ============================================================================
 
-/**
- * Get user's rated movies and want-to-watch list from database
- * Uses NextAuth's server-side auth() function for authentication
- * Returns user-specific data for SSR
- */
+// Get user's rated movies and want-to-watch list from database
+// Uses NextAuth's server-side auth() function for authentication
+// Returns user-specific data for SSR
 export const getUserRatedMovies = async (): Promise<UserInitialData> => {
   try {
     const session = await auth();
@@ -31,7 +27,6 @@ export const getUserRatedMovies = async (): Promise<UserInitialData> => {
       return { ratings: [], wantToWatch: [] };
     }
 
-    // Use dynamic imports like the API routes to avoid isTTY errors
     const { getUserRatings, getWantToWatchList } = await import(
       "@/lib/db-utils"
     );
@@ -50,14 +45,10 @@ export const getUserRatedMovies = async (): Promise<UserInitialData> => {
   }
 };
 
-// ============================================================================
 // EXTERNAL API CALLS (TMDB)
-// ============================================================================
 
-/**
- * Server-side function for fetching initial popular movies
- * Used in Server Components for SSR/ISR
- */
+// Server-side function for fetching initial popular movies
+// Used in Server Components for SSR/ISR
 export const getInitialMovies = async (): Promise<TMDBResponse> => {
   try {
     const apiKey = process.env.TMDB_API_KEY;
@@ -66,11 +57,10 @@ export const getInitialMovies = async (): Promise<TMDBResponse> => {
       throw new Error("TMDB API key not configured");
     }
 
-    // Add timeout to prevent hanging
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 5000); // 5 second timeout
+    }, 5000);
 
     const url = `${TMDB_BASE_URL}/movie/popular?api_key=${apiKey}&language=en-US&page=1`;
 
@@ -97,10 +87,8 @@ export const getInitialMovies = async (): Promise<TMDBResponse> => {
   }
 };
 
-/**
- * Server-side function for fetching movie details with comprehensive data
- * Used in Server Components for SSR/ISR
- */
+// Server-side function for fetching movie details with comprehensive data
+// Used in Server Components for SSR/ISR
 export const getMovieData = async (
   movieId: number
 ): Promise<TMDBMovie | null> => {
@@ -111,7 +99,6 @@ export const getMovieData = async (
       throw new Error("TMDB API key not configured");
     }
 
-    // Fetch comprehensive movie data including credits, videos, and images
     const response = await fetch(
       `${TMDB_BASE_URL}/movie/${movieId}?api_key=${apiKey}&language=en-US&append_to_response=credits,videos,images,release_dates`,
       {
@@ -135,10 +122,8 @@ export const getMovieData = async (
   }
 };
 
-/**
- * Server-side function for fetching movie details for user's rated movies
- * Used in Server Components for SSR
- */
+// Server-side function for fetching movie details for user's rated movies
+// Used in Server Components for SSR
 export const getUserMovieDetails = async (movieIds: number[]) => {
   if (movieIds.length === 0) return {};
 
@@ -148,7 +133,6 @@ export const getUserMovieDetails = async (movieIds: number[]) => {
       throw new Error("TMDB API key not configured");
     }
 
-    // Fetch movie details for all user's rated movies
     const movieDetailsPromises = movieIds.map(async (movieId) => {
       const response = await fetch(
         `${TMDB_BASE_URL}/movie/${movieId}?api_key=${apiKey}&language=en-US`,
@@ -167,7 +151,6 @@ export const getUserMovieDetails = async (movieIds: number[]) => {
 
     const movieDetails = await Promise.all(movieDetailsPromises);
 
-    // Create a map of movie ID to movie details
     const movieDetailsMap: Record<number, TMDBMovie> = {};
     movieDetails.forEach((movie) => {
       if (movie) {
@@ -182,10 +165,8 @@ export const getUserMovieDetails = async (movieIds: number[]) => {
   }
 };
 
-/**
- * Server-side function for fetching movie genres
- * Used in Server Components for SSR/ISR
- */
+// Server-side function for fetching movie genres
+// Used in Server Components for SSR/ISR
 export const getInitialGenres = async (): Promise<TMDBGenresResponse> => {
   try {
     const apiKey = process.env.TMDB_API_KEY;
@@ -194,11 +175,10 @@ export const getInitialGenres = async (): Promise<TMDBGenresResponse> => {
       throw new Error("TMDB API key not configured");
     }
 
-    // Add timeout to prevent hanging
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 5000); // 5 second timeout
+    }, 5000);
 
     const url = `${TMDB_BASE_URL}/genre/movie/list?api_key=${apiKey}&language=en-US`;
 
@@ -225,10 +205,8 @@ export const getInitialGenres = async (): Promise<TMDBGenresResponse> => {
   }
 };
 
-/**
- * Server-side function for fetching movies by genre
- * Used in Server Components for SSR/ISR
- */
+// Server-side function for fetching movies by genre
+// Used in Server Components for SSR/ISR
 export const getMoviesByGenreData = async (
   genreId: number,
   page: number = 1
@@ -240,7 +218,6 @@ export const getMoviesByGenreData = async (
       throw new Error("TMDB API key not configured");
     }
 
-    // Fetch movies by genre with popularity sorting
     const response = await fetch(
       `${TMDB_BASE_URL}/discover/movie?api_key=${apiKey}&language=en-US&with_genres=${genreId}&page=${page}&sort_by=popularity.desc`,
       {

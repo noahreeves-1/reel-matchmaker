@@ -7,13 +7,9 @@ import { db } from "./db/drizzle";
 import { users } from "./db/schema";
 import { eq } from "drizzle-orm";
 
-// AUTHENTICATION SYSTEM: NextAuth.js v5 implementation
-// This file handles user authentication with credentials provider
+// NextAuth.js v5 implementation with credentials provider
 // Uses bcrypt for password verification and Drizzle ORM for database queries
 
-/**
- * Get user by email from database
- */
 async function getUser(email: string) {
   try {
     const user = await db.query.users.findFirst({

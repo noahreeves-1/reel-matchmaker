@@ -2,29 +2,21 @@
 
 import { useState, useEffect } from "react";
 
-// LOADING ANIMATION: Reusable component for showing progress during async operations
-// This component displays engaging progress messages with visual indicators
-// to make waiting times feel shorter and more interactive
-//
-// USAGE EXAMPLES:
-// - AI recommendation generation
-// - Data fetching operations
-// - File uploads
-// - Any long-running async process
+// Reusable loading animation component for async operations
+// Displays engaging progress messages with visual indicators
 
 interface LoadingAnimationProps {
   steps?: string[];
-  stepInterval?: number; // milliseconds between step changes
+  stepInterval?: number;
   showProgressBar?: boolean;
   showTimeEstimate?: boolean;
   timeEstimate?: string;
   variant?: "default" | "purple" | "blue" | "green" | "orange";
   size?: "sm" | "md" | "lg";
   className?: string;
-  // New props for better UX
-  estimatedDuration?: number; // estimated duration in milliseconds
-  preventReset?: boolean; // prevent progress bar from resetting
-  showIcon?: boolean; // whether to show the icon
+  estimatedDuration?: number;
+  preventReset?: boolean;
+  showIcon?: boolean;
 }
 
 export const LoadingAnimation = ({
@@ -43,7 +35,6 @@ export const LoadingAnimation = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
 
-  // Calculate step interval based on estimated duration if provided
   const effectiveStepInterval = estimatedDuration
     ? Math.max(stepInterval, estimatedDuration / steps.length)
     : stepInterval;
@@ -56,7 +47,6 @@ export const LoadingAnimation = ({
       const elapsed = now - startTime;
       setElapsedTime(elapsed);
 
-      // If preventReset is true, stop cycling when we reach the end
       if (preventReset && currentStep >= steps.length - 1) {
         return;
       }
@@ -67,24 +57,19 @@ export const LoadingAnimation = ({
     return () => clearInterval(interval);
   }, [steps.length, effectiveStepInterval, preventReset, currentStep]);
 
-  // Calculate progress percentage
   const getProgressPercentage = () => {
     if (estimatedDuration && preventReset) {
-      // Use time-based progress when we have an estimated duration
       const timeProgress = Math.min(
         (elapsedTime / estimatedDuration) * 100,
         100
       );
       const stepProgress = ((currentStep + 1) / steps.length) * 100;
-      // Use the higher of the two to ensure progress never goes backwards
       return Math.max(timeProgress, stepProgress);
     }
 
-    // Default step-based progress
     return ((currentStep + 1) / steps.length) * 100;
   };
 
-  // Variant configurations
   const variants = {
     default: {
       bg: "from-slate-50 to-slate-100 dark:from-slate-900/20 dark:to-slate-800/20",
@@ -105,11 +90,11 @@ export const LoadingAnimation = ({
       timeText: "text-purple-600 dark:text-purple-400",
     },
     blue: {
-      bg: "from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20",
+      bg: "from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20",
       border: "border-blue-200 dark:border-blue-700",
       text: "text-blue-700 dark:text-blue-300",
       dots: "bg-blue-500",
-      progress: "from-blue-500 to-indigo-500",
+      progress: "from-blue-500 to-cyan-500",
       progressBg: "bg-blue-200 dark:bg-blue-700",
       timeText: "text-blue-600 dark:text-blue-400",
     },
@@ -123,110 +108,115 @@ export const LoadingAnimation = ({
       timeText: "text-green-600 dark:text-green-400",
     },
     orange: {
-      bg: "from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20",
-      border: "border-amber-200 dark:border-amber-700",
-      text: "text-amber-700 dark:text-amber-300",
-      dots: "bg-amber-500",
-      progress: "from-amber-500 to-orange-500",
-      progressBg: "bg-amber-200 dark:bg-amber-700",
-      timeText: "text-amber-600 dark:text-amber-400",
+      bg: "from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20",
+      border: "border-orange-200 dark:border-orange-700",
+      text: "text-orange-700 dark:text-orange-300",
+      dots: "bg-orange-500",
+      progress: "from-orange-500 to-amber-500",
+      progressBg: "bg-orange-200 dark:bg-orange-700",
+      timeText: "text-orange-600 dark:text-orange-400",
     },
   };
 
-  // Size configurations
   const sizes = {
     sm: {
-      padding: "p-4",
-      textSize: "text-sm",
-      dotsSize: "w-1.5 h-1.5",
-      iconSize: "w-4 h-4",
-      timeTextSize: "text-xs",
+      container: "p-3",
+      text: "text-sm",
+      icon: "w-4 h-4",
+      progress: "h-1",
+      dots: "w-1 h-1",
     },
     md: {
-      padding: "p-6",
-      textSize: "text-base",
-      dotsSize: "w-2 h-2",
-      iconSize: "w-5 h-5",
-      timeTextSize: "text-xs",
+      container: "p-4",
+      text: "text-base",
+      icon: "w-5 h-5",
+      progress: "h-2",
+      dots: "w-1.5 h-1.5",
     },
     lg: {
-      padding: "p-8",
-      textSize: "text-lg",
-      dotsSize: "w-2.5 h-2.5",
-      iconSize: "w-6 h-6",
-      timeTextSize: "text-sm",
+      container: "p-6",
+      text: "text-lg",
+      icon: "w-6 h-6",
+      progress: "h-3",
+      dots: "w-2 h-2",
     },
   };
 
-  const config = variants[variant];
-  const sizeConfig = sizes[size];
+  const currentVariant = variants[variant];
+  const currentSize = sizes[size];
 
   return (
     <div
-      className={`bg-gradient-to-r ${config.bg} rounded-lg ${config.border} ${sizeConfig.padding} ${className}`}
+      className={`bg-gradient-to-r ${currentVariant.bg} border ${currentVariant.border} rounded-lg ${currentSize.container} ${className}`}
     >
-      <div className="flex items-center justify-center space-x-4">
-        {/* Animated dots */}
-        <div className="flex space-x-1">
-          <div
-            className={`${sizeConfig.dotsSize} ${config.dots} rounded-full animate-bounce`}
-            style={{ animationDelay: "0ms" }}
-          ></div>
-          <div
-            className={`${sizeConfig.dotsSize} ${config.dots} rounded-full animate-bounce`}
-            style={{ animationDelay: "150ms" }}
-          ></div>
-          <div
-            className={`${sizeConfig.dotsSize} ${config.dots} rounded-full animate-bounce`}
-            style={{ animationDelay: "300ms" }}
-          ></div>
-        </div>
-
-        {/* Progress message */}
-        <p
-          className={`${config.text} font-medium text-center ${sizeConfig.textSize}`}
-        >
-          {steps[currentStep]}
-        </p>
-
-        {/* Icon */}
+      <div className="flex items-center space-x-3">
         {showIcon && (
-          <div className={config.text}>
-            <svg
-              className={sizeConfig.iconSize}
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-                clipRule="evenodd"
-              />
-            </svg>
+          <div className="flex-shrink-0">
+            <div className={`${currentSize.icon} animate-spin`}>
+              <svg className="w-full h-full" fill="none" viewBox="0 0 24 24">
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+            </div>
           </div>
         )}
-      </div>
 
-      {/* Progress bar */}
-      {showProgressBar && (
-        <div className={`mt-4 w-full ${config.progressBg} rounded-full h-2`}>
-          <div
-            className={`bg-gradient-to-r ${config.progress} h-2 rounded-full transition-all duration-1000 ease-out`}
-            style={{
-              width: `${getProgressPercentage()}%`,
-            }}
-          ></div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center space-x-2">
+            <p
+              className={`${currentSize.text} font-medium ${currentVariant.text}`}
+            >
+              {steps[currentStep]}
+            </p>
+            <div className="flex space-x-1">
+              {[0, 1, 2].map((dot) => (
+                <div
+                  key={dot}
+                  className={`${currentSize.dots} ${currentVariant.dots} rounded-full animate-pulse`}
+                  style={{
+                    animationDelay: `${dot * 0.2}s`,
+                    opacity: dot === currentStep % 3 ? 1 : 0.3,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
+          {showProgressBar && (
+            <div className="mt-2">
+              <div
+                className={`w-full ${currentSize.progress} ${currentVariant.progressBg} rounded-full overflow-hidden`}
+              >
+                <div
+                  className={`h-full bg-gradient-to-r ${currentVariant.progress} transition-all duration-300 ease-out`}
+                  style={{ width: `${getProgressPercentage()}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {showTimeEstimate && (
+            <p
+              className={`mt-1 ${
+                currentSize.text === "text-sm" ? "text-xs" : "text-sm"
+              } ${currentVariant.timeText}`}
+            >
+              {timeEstimate}
+            </p>
+          )}
         </div>
-      )}
-
-      {/* Time estimate */}
-      {showTimeEstimate && (
-        <p
-          className={`${config.timeText} ${sizeConfig.timeTextSize} text-center mt-2`}
-        >
-          {timeEstimate}
-        </p>
-      )}
+      </div>
     </div>
   );
 };

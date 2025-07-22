@@ -39,8 +39,6 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={inter.className}>
-        {/* Providers: Client-side providers (React Query, etc.) must be in a separate component */}
-        {/* This is because Server Components can't use hooks or browser APIs */}
         <Providers>
           <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
             <Header />

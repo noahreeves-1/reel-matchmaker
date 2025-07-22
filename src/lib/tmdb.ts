@@ -1,4 +1,4 @@
-// TMDB API INTEGRATION: External movie data service
+// External movie data service
 // This file provides TypeScript interfaces and utility functions for The Movie Database API
 //
 // SCALING CONSIDERATIONS:
@@ -23,7 +23,6 @@ export interface TMDBMovie {
   vote_count: number;
   genre_ids: number[];
   popularity: number;
-  // Additional fields for detailed movie info
   runtime?: number;
   status?: string;
   tagline?: string;
@@ -116,7 +115,6 @@ export interface TMDBGenresResponse {
 }
 
 const getApiKey = (): string => {
-  // Only use server-side API key for security
   const apiKey = process.env.TMDB_API_KEY || "";
   if (!apiKey) {
     console.warn(

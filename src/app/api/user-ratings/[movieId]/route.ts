@@ -1,41 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { removeUserRating, saveUserRating } from "@/lib/db-utils";
+import {
+  removeUserRating,
+  saveUserRating,
+  getUserRating,
+} from "@/lib/db-utils";
 
-// RENDERING STRATEGY: Server-Side Rendering (SSR) with Dynamic Routes
-// - This API route handles individual movie ratings with dynamic route parameters
-// - Uses NextAuth.js server-side authentication and dynamic parameter validation
-// - Benefits: Secure per-movie operations, database persistence, real-time updates
-// - Perfect for: Individual movie rating operations (rate, get, delete)
-// - Why SSR with dynamic routes? Each movie rating operation is user-specific and secure
-//
-// NEXT.JS OPTIMIZATIONS:
-// - Dynamic route parameter handling with proper validation
-// - Server-side authentication with NextAuth.js
-// - Database operations with Drizzle ORM
-// - Input validation and type conversion
-// - No caching - user data must be real-time
-//
-// SCALING CONSIDERATIONS:
-// - TRADEOFFS: Database queries vs. real-time data accuracy
-// - VERCEL OPTIMIZATIONS: Serverless functions, database connection pooling
-// - SCALE BREAKERS: Database connection limits, authentication overhead
-// - FUTURE IMPROVEMENTS: Redis caching, database indexing, batch operations
+// Individual movie ratings API route with dynamic route parameters
+// Uses NextAuth.js for security and database persistence for real-time updates
 
-// POST /api/user-ratings/[movieId] - Rate a movie
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ movieId: string }> }
 ) {
   try {
-    // Server-side authentication using NextAuth.js
     const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Dynamic route parameter extraction and validation
     const { movieId: movieIdParam } = await params;
     const movieId = parseInt(movieIdParam);
 
@@ -47,7 +31,6 @@ export async function POST(
 
     const { rating, movieTitle, posterPath, releaseDate } = body;
 
-    // Convert rating to number and validate
     const ratingNumber = Number(rating);
 
     if (
@@ -64,12 +47,11 @@ export async function POST(
 
     const userEmail = session.user.email;
 
-    // Save rating to database with movie metadata
     const savedRating = await saveUserRating(
       userEmail,
       movieId,
       ratingNumber,
-      undefined, // no notes
+      undefined,
       movieTitle,
       posterPath,
       releaseDate
@@ -100,20 +82,17 @@ export async function POST(
   }
 }
 
-// GET /api/user-ratings/[movieId] - Get a specific rating
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ movieId: string }> }
 ) {
   try {
-    // Server-side authentication using NextAuth.js
     const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Dynamic route parameter extraction and validation
     const { movieId: movieIdParam } = await params;
     const movieId = parseInt(movieIdParam);
 
@@ -123,20 +102,14 @@ export async function GET(
 
     const userEmail = session.user.email;
 
-    // Dynamic import for database utility function
-    const { getUserRating } = await import("@/lib/db-utils");
     const rating = await getUserRating(userEmail, movieId);
-
-    if (!rating) {
-      return NextResponse.json({ error: "Rating not found" }, { status: 404 });
-    }
 
     return NextResponse.json({
       success: true,
-      rating: rating.rating,
+      rating,
     });
   } catch (error) {
-    console.error("Error getting rating:", error);
+    console.error("Error fetching rating:", error);
 
     return NextResponse.json(
       {
@@ -148,20 +121,17 @@ export async function GET(
   }
 }
 
-// DELETE /api/user-ratings/[movieId] - Remove a specific rating
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ movieId: string }> }
 ) {
   try {
-    // Server-side authentication using NextAuth.js
     const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Dynamic route parameter extraction and validation
     const { movieId: movieIdParam } = await params;
     const movieId = parseInt(movieIdParam);
 
@@ -171,20 +141,21 @@ export async function DELETE(
 
     const userEmail = session.user.email;
 
-    // Remove rating from database
-    const removedRating = await removeUserRating(userEmail, movieId);
+    const deleted = await removeUserRating(userEmail, movieId);
 
-    if (!removedRating) {
-      return NextResponse.json({ error: "Rating not found" }, { status: 404 });
+    if (!deleted) {
+      return NextResponse.json(
+        { error: "Rating not found or failed to delete" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({
       success: true,
-      message: "Rating removed successfully",
-      removedRating,
+      message: "Rating deleted successfully",
     });
   } catch (error) {
-    console.error("Error removing rating:", error);
+    console.error("Error deleting rating:", error);
 
     return NextResponse.json(
       {

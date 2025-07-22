@@ -1,5 +1,4 @@
-// MOVIE TYPES: TypeScript type definitions for movie-related data
-// This file defines the structure of movie data used throughout the application
+// TypeScript type definitions for movie-related data
 // Note: TMDBMovie and TMDBResponse are defined in @/lib/tmdb.ts (more complete versions)
 
 export interface RatedMovie {
@@ -35,7 +34,7 @@ export interface MovieRecommendation {
   popularity?: number;
 }
 
-// DATABASE TYPES: Type definitions for database entities
+// Type definitions for database entities
 // These match the Drizzle schema types for type safety
 
 export interface UserRating {
@@ -63,7 +62,7 @@ export interface WantToWatch {
   updatedAt: Date;
 }
 
-// INITIAL DATA TYPES: For SSR data passing between server and client
+// For SSR data passing between server and client
 export interface UserInitialData {
   ratings: UserRating[];
   wantToWatch: WantToWatch[];

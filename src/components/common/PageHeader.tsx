@@ -3,10 +3,7 @@ interface PageHeaderProps {
   description?: string;
 }
 
-/**
- * Reusable page header component
- * Provides consistent styling for page titles and descriptions
- */
+// Reusable page header component with consistent styling
 export const PageHeader = ({ title, description }: PageHeaderProps) => {
   return (
     <div className="mb-8">

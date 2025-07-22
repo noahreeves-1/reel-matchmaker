@@ -1,19 +1,19 @@
 import type { NextAuthConfig } from "next-auth";
 
-// AUTH CONFIG: NextAuth configuration for route protection and callbacks
+// NextAuth configuration for route protection and callbacks
 // This file defines which routes require authentication and custom callbacks
 // Providers are defined in auth.ts to avoid duplication
 
 export const authConfig = {
-  pages: { signIn: "/login" }, // custom sign‑in page
+  pages: { signIn: "/login" },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const loggedIn = !!auth?.user;
       const myMoviesPage = nextUrl.pathname.startsWith("/my-movies");
 
-      if (myMoviesPage) return loggedIn; // gate dashboard
-      return true; // public routes stay public, logged-in users can access home page
+      if (myMoviesPage) return loggedIn;
+      return true;
     },
   },
-  providers: [], // will add Credentials next
+  providers: [],
 } satisfies NextAuthConfig;

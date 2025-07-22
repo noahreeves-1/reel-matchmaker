@@ -1,5 +1,4 @@
-// APPLICATION CONSTANTS: Centralized configuration and constants
-// This file contains all application-wide constants and configuration values
+// Centralized configuration and constants
 
 export const API_CONFIG = {
   TMDB_BASE_URL: "https://api.themoviedb.org/3",
@@ -9,7 +8,7 @@ export const API_CONFIG = {
 } as const;
 
 export const CACHE_CONFIG = {
-  MOVIES_STALE_TIME: 1000 * 60 * 5, // 5 minutes
-  MOVIES_GC_TIME: 1000 * 60 * 30, // 30 minutes
-  RECOMMENDATIONS_STALE_TIME: 1000 * 60 * 60, // 1 hour
+  MOVIES_STALE_TIME: 1000 * 60 * 5,
+  MOVIES_GC_TIME: 1000 * 60 * 30,
+  RECOMMENDATIONS_STALE_TIME: 1000 * 60 * 60,
 } as const;
