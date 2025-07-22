@@ -85,7 +85,7 @@ export async function generateMetadata({
       description: `Discover the best ${genre.name.toLowerCase()} movies - from classics to new releases`,
       keywords: ["movies", genre.name.toLowerCase(), "TMDB", "streaming"],
     };
-  } catch (error) {
+  } catch {
     return {
       title: "Genre Movies - Reel Matchmaker",
       description: "Discover movies by genre",

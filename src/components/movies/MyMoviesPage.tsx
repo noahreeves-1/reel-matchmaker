@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  Header,
-  Footer,
   MovieCard,
   LoadingSkeleton,
   ConfirmDialog,
@@ -151,57 +149,44 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
   // Show loading state until client-side hydration is complete
   if (!isClient) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <LoadingSkeleton />
-        </div>
-        <Footer />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <LoadingSkeleton />
       </div>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <LoadingSkeleton />
-        </div>
-        <Footer />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <LoadingSkeleton />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">⚠️</div>
-            <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
-              Error Loading Movies
-            </h3>
-            <p className="text-slate-600 dark:text-slate-400 mb-6">
-              There was an error loading your rated movies. Please try again.
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-200"
-            >
-              Retry
-            </button>
-          </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
+            Error Loading Movies
+          </h3>
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
+            There was an error loading your rated movies. Please try again.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-200"
+          >
+            Retry
+          </button>
         </div>
-        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-      <Header />
+    <>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
@@ -379,7 +364,6 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
           </>
         )}
       </div>
-      <Footer />
 
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}
@@ -408,6 +392,6 @@ export const MyMoviesPage = ({ initialData }: MyMoviesPageProps) => {
           }
         />
       )}
-    </div>
+    </>
   );
 };
