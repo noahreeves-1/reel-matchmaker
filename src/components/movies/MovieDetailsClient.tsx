@@ -40,11 +40,6 @@ export const MovieDetailsClient = ({ movie }: MovieDetailsClientProps) => {
   const currentRating = ratedMovies.find((rm) => rm.id === movie.id)?.rating;
   const isInWantToWatch = wantToWatchList.some((wt) => wt.id === movie.id);
 
-  // Debug logging
-  console.log("Movie ID:", movie.id);
-  console.log("Rated Movies:", ratedMovies);
-  console.log("Current Rating:", currentRating);
-
   // Rating functionality
   const handleOpenRatingModal = () => {
     setRatingModal({

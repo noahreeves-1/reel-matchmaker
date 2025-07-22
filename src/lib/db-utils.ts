@@ -320,29 +320,6 @@ export async function saveRecommendations(
     const savedRecommendations = [];
 
     for (const rec of recommendationData) {
-      console.log("🔄 DB: Processing recommendation data:", {
-        id: rec.id,
-        title: rec.title,
-        posterPath: rec.posterPath,
-        poster_path: rec.poster_path,
-        backdropPath: rec.backdropPath,
-        backdrop_path: rec.backdrop_path,
-        releaseDate: rec.releaseDate,
-        release_date: rec.release_date,
-        overview: rec.overview,
-        vote_average: rec.vote_average,
-        vote_count: rec.vote_count,
-        revenue: rec.revenue,
-        popularity: rec.popularity,
-        runtime: rec.runtime,
-        status: rec.status,
-        tagline: rec.tagline,
-        budget: rec.budget,
-        genres: rec.genres,
-        production_companies:
-          rec.productionCompanies || rec.production_companies,
-      });
-
       const existingMovie = await db
         .select()
         .from(movies)
@@ -350,7 +327,6 @@ export async function saveRecommendations(
         .limit(1);
 
       if (!existingMovie[0]) {
-        console.log("🔄 DB: Creating new movie record for ID:", rec.id);
         await db.insert(movies).values({
           id: rec.id,
           title: rec.title,
@@ -387,7 +363,6 @@ export async function saveRecommendations(
           lastUpdated: new Date(),
         });
       } else {
-        console.log("🔄 DB: Updating existing movie record for ID:", rec.id);
         await db
           .update(movies)
           .set({
@@ -530,21 +505,11 @@ export async function getLastRecommendations(
   limit: number = 5
 ) {
   try {
-    console.log(
-      "🔄 DB: getLastRecommendations called for user:",
-      userEmail,
-      "limit:",
-      limit
-    );
-
     // First get the user by email
     const user = await getUserByEmail(userEmail);
     if (!user) {
-      console.log("❌ DB: User not found for email:", userEmail);
       return [];
     }
-
-    console.log("🔄 DB: Found user with ID:", user.id);
 
     const lastRecommendations = await db
       .select({
@@ -583,12 +548,6 @@ export async function getLastRecommendations(
       .orderBy(desc(recommendations.updatedAt))
       .limit(limit);
 
-    console.log(
-      "🔄 DB: Raw database results:",
-      lastRecommendations.length,
-      "recommendations"
-    );
-
     const transformedRecommendations = lastRecommendations.map((rec) => ({
       id: rec.movieId,
       title: rec.title,
@@ -611,10 +570,6 @@ export async function getLastRecommendations(
       popularity: rec.popularity ? Number(rec.popularity) : undefined,
     }));
 
-    console.log(
-      "🔄 DB: Transformed recommendations:",
-      transformedRecommendations
-    );
     return transformedRecommendations;
   } catch (error) {
     console.error("❌ DB: Error fetching last recommendations:", error);
