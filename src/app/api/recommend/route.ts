@@ -75,7 +75,29 @@ async function getMovieDetails(movieId: number): Promise<TMDBMovie | null> {
     }
 
     const movie = await response.json();
-    return {
+
+    // Debug: Log the revenue data from TMDB
+    console.log(
+      `🔍 Movie ${movieId} (${movie.title}) revenue from TMDB:`,
+      movie.revenue
+    );
+
+    // Debug: If revenue is undefined, log the full movie object to see what's available
+    if (movie.revenue === undefined || movie.revenue === null) {
+      console.log(
+        `⚠️ Movie ${movieId} (${movie.title}) has no revenue data. Full TMDB response:`,
+        {
+          id: movie.id,
+          title: movie.title,
+          revenue: movie.revenue,
+          budget: movie.budget,
+          status: movie.status,
+          release_date: movie.release_date,
+        }
+      );
+    }
+
+    const movieDetails = {
       id: movie.id,
       title: movie.title,
       poster_path: movie.poster_path,
@@ -85,6 +107,11 @@ async function getMovieDetails(movieId: number): Promise<TMDBMovie | null> {
       revenue: movie.revenue,
       popularity: movie.popularity,
     };
+
+    // Debug: Log the processed movie details
+    console.log(`📊 Processed movie details for ${movie.title}:`, movieDetails);
+
+    return movieDetails;
   } catch (error) {
     console.error(`Error fetching movie ${movieId}:`, error);
     return null;
@@ -241,47 +268,79 @@ export async function POST(req: Request) {
 
     const userEmail = session.user.email;
 
-    const prompt = `
-You are a movie recommendation expert. Based on the user's rated movies and want-to-watch list, suggest 10 unique movie recommendations.
+    // Build lists for the prompt
+    const likedMovies = ratedMovies.filter(
+      (movie: RatedMovie) => movie.rating >= 7
+    );
+    const wantToWatchMoviesList = wantToWatchList
+      .map((movie: WantToWatchMovie) => movie.title)
+      .join(", ");
+    const ratedMovieKeys = new Set(
+      ratedMovies.map((movie: RatedMovie) => movie.title)
+    );
+    const wantToWatchKeys = new Set(
+      wantToWatchList.map((movie: WantToWatchMovie) => movie.title)
+    );
 
-User's Rated Movies (with ratings 1-10):
-${ratedMovies
-  .map((movie: RatedMovie) => `- ${movie.title} (Rating: ${movie.rating}/10)`)
-  .join("\n")}
+    const { text } = await generateText({
+      model: openai("gpt-4.1-mini"),
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a movie recommendation expert with a fun, creative personality. Provide accurate, helpful movie recommendations based on user preferences. You MUST always respond with valid JSON in the exact format specified. Do not include any additional text, explanations, or markdown formatting - only the JSON array.",
+        },
+        {
+          role: "user",
+          content: `Based on these movies the user rated highly (7+ stars): ${likedMovies
+            .map((movie: RatedMovie) => `${movie.title} - (${movie.rating}/10)`)
+            .join(", ")}
 
-User's Want-to-Watch List:
-${wantToWatchList
-  .map((movie: WantToWatchMovie) => `- ${movie.title}`)
-  .join("\n")}
+The user has also rated these other movies: ${ratedMovies
+            .filter((movie: RatedMovie) => movie.rating < 7)
+            .map((movie: RatedMovie) => `${movie.title} - (${movie.rating}/10)`)
+            .join(", ")}
 
-Please provide 10 movie recommendations in this exact JSON format:
+The user has these movies in their want to watch list (movies they want to see): ${
+            wantToWatchMoviesList || "None"
+          }
+
+Please recommend 5 movies that the user would likely enjoy. For each recommendation, provide:
+1. The exact movie title (including the year if there are multiple movies with the same title)
+2. A brief reason why you're recommending it (1-2 sentences)
+3. A detailed, personalized reason that includes: what the movie is about, why it's interesting based on their taste, what audiences/critics think about it, AND a sentence about how others who liked similar movies to the user's highly-rated films also enjoyed this movie (3-4 sentences total)
+
+IMPORTANT: Do NOT recommend any movies that the user has already rated or has in their want to watch list. The user has rated these movies: ${Array.from(
+            ratedMovieKeys
+          ).join(", ")}. The user has these in their want to watch list: ${
+            Array.from(wantToWatchKeys).join(", ") || "None"
+          }
+
+You MUST respond with ONLY a JSON array containing objects with "title", "reason", and "personalizedReason" fields.
+
+Example format:
 [
   {
     "title": "Movie Title",
-    "reason": "Brief reason why this movie matches their taste",
-    "personalizedReason": "Personalized explanation based on their ratings"
+    "reason": "This action-packed thriller shares similar themes and pacing to movies you rated highly.",
+    "personalizedReason": "This gripping psychological thriller follows a detective's descent into madness as he investigates a series of increasingly disturbing crimes. Given your love for complex character studies like The Dark Knight (10/10), you'll appreciate how this film explores the blurred lines between justice and obsession. Critics praised its atmospheric tension and mind-bending plot twists, with audiences calling it 'a masterclass in psychological suspense' that keeps you guessing until the very end. Fans of The Dark Knight and other Christopher Nolan films consistently rate this movie highly, with many saying it captures the same intellectual depth and visual storytelling they love."
   }
 ]
 
-Focus on:
-1. Movies similar to their highly rated films (8-10 ratings)
-2. Movies from genres they enjoy
-3. Movies with similar themes or directors
-4. Popular and critically acclaimed films
-5. Diverse recommendations across different genres
-
-Return only the JSON array, no additional text.
-`;
-
-    const { text } = await generateText({
-      model: openai("gpt-4"),
-      prompt,
+Make the personalizedReason informative and engaging. Include: 1) A brief plot summary, 2) Why it matches their taste based on their ratings, 3) What critics/audiences say about it, 4) A natural sentence about how others who enjoyed similar movies to the user's highly-rated films also loved this movie. Be specific about the movie's content and appeal. Only recommend movies that are well-known and available on major streaming platforms. Do not include any text before or after the JSON array.`,
+        },
+      ],
+      temperature: 0.8,
       maxTokens: 2000,
     });
+
+    // Debug: Log the raw AI response and parsed recommendations
+    console.log("AI raw response text:", text);
 
     let aiRecommendations: AIRecommendation[];
     try {
       aiRecommendations = JSON.parse(text);
+      console.log("Parsed AI recommendations:", aiRecommendations);
     } catch (error) {
       console.error("Failed to parse AI response:", error);
       return Response.json(
@@ -293,14 +352,42 @@ Return only the JSON array, no additional text.
     const recommendations: Recommendation[] = [];
 
     for (const aiRec of aiRecommendations) {
-      const movieDetails = await searchMovieByTitle(aiRec.title);
+      // First search for the movie to get its ID
+      const searchResult = await searchMovieByTitle(aiRec.title);
 
-      if (movieDetails) {
-        recommendations.push({
-          ...movieDetails,
-          reason: aiRec.reason,
-          personalizedReason: aiRec.personalizedReason,
-        });
+      if (searchResult) {
+        console.log(
+          `🔍 Processing recommendation: ${aiRec.title} (ID: ${searchResult.id})`
+        );
+
+        // Then fetch full movie details including revenue using the movie ID
+        const fullMovieDetails = await getMovieDetails(searchResult.id);
+
+        if (fullMovieDetails) {
+          console.log(
+            `✅ Full details fetched for ${aiRec.title}, revenue:`,
+            fullMovieDetails.revenue
+          );
+          recommendations.push({
+            ...fullMovieDetails, // This includes revenue data
+            reason: aiRec.reason,
+            personalizedReason: aiRec.personalizedReason,
+            matchScore: searchResult.matchScore,
+            matchLevel: searchResult.matchLevel,
+            enhancedReason: searchResult.enhancedReason,
+          });
+        } else {
+          console.log(
+            `⚠️ Fallback to search result for ${aiRec.title}, revenue:`,
+            searchResult.revenue
+          );
+          // Fallback to search result if getMovieDetails fails
+          recommendations.push({
+            ...searchResult,
+            reason: aiRec.reason,
+            personalizedReason: aiRec.personalizedReason,
+          });
+        }
       }
     }
 
