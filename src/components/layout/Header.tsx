@@ -55,7 +55,7 @@ export const Header = () => {
               href="/"
               className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             >
-              Discover
+              Home
             </Link>
             <Link
               href="/genres"
