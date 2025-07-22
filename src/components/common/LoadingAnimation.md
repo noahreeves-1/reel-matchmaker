@@ -37,7 +37,7 @@ const AI_STEPS = [
 <LoadingAnimation
   steps={AI_STEPS}
   variant="purple"
-  timeEstimate="This usually takes 10-20 seconds"
+  timeEstimate="This usually takes 15-25 seconds"
   estimatedDuration={30000} // 30 seconds
   preventReset={true} // Prevent progress bar from resetting
   showIcon={false} // Hide icon for cleaner look
