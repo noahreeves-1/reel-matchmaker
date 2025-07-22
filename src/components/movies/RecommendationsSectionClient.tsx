@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { RatedMovie, MovieRecommendation } from "@/types/movie";
 import { RatingModal } from "./RatingModal";
 import { LoadingAnimation } from "@/components/common";
@@ -57,6 +58,7 @@ export const RecommendationsSectionClient = ({
   wantToWatchLoadingStates = {},
   onToggleWantToWatch,
 }: RecommendationsSectionClientProps) => {
+  const router = useRouter();
   const [ratingModal, setRatingModal] = useState<{
     isOpen: boolean;
     movie: MovieRecommendation | null;
@@ -118,6 +120,14 @@ export const RecommendationsSectionClient = ({
     if (onToggleWantToWatch) {
       onToggleWantToWatch(movie, isInWantToWatch);
     }
+  };
+
+  const handleMovieClick = (movie: MovieRecommendation) => {
+    // Set the current page path in sessionStorage before navigating
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("previousPage", window.location.pathname);
+    }
+    router.push(`/movies/${movie.id}`);
   };
 
   const getMatchLevelDisplay = (level?: string) => {
@@ -316,30 +326,38 @@ export const RecommendationsSectionClient = ({
                   <div className="flex gap-6">
                     {/* Movie Poster */}
                     <div className="flex-shrink-0">
-                      {posterUrl ? (
-                        <div className="relative w-20 h-30">
-                          <Image
-                            src={posterUrl}
-                            alt={rec.title}
-                            fill
-                            className="object-cover rounded-lg shadow-sm"
-                            sizes="80px"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-20 h-30 bg-slate-200 dark:bg-slate-600 rounded-lg flex items-center justify-center">
-                          <span className="text-xs text-slate-500 dark:text-slate-400">
-                            No Poster
-                          </span>
-                        </div>
-                      )}
+                      <div
+                        onClick={() => handleMovieClick(rec)}
+                        className="cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                      >
+                        {posterUrl ? (
+                          <div className="relative w-20 h-30">
+                            <Image
+                              src={posterUrl}
+                              alt={rec.title}
+                              fill
+                              className="object-cover rounded-lg shadow-sm"
+                              sizes="80px"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-20 h-30 bg-slate-200 dark:bg-slate-600 rounded-lg flex items-center justify-center">
+                            <span className="text-xs text-slate-500 dark:text-slate-400">
+                              No Poster
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Movie Details */}
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex-1">
-                          <h4 className="font-semibold text-slate-900 dark:text-white text-lg leading-tight mb-1">
+                          <h4
+                            onClick={() => handleMovieClick(rec)}
+                            className="font-semibold text-slate-900 dark:text-white text-lg leading-tight mb-1 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
+                          >
                             {rec.title}
                           </h4>
 
@@ -371,7 +389,10 @@ export const RecommendationsSectionClient = ({
                         <div className="flex gap-2">
                           {/* Rating Button - now first */}
                           <button
-                            onClick={() => handleOpenRatingModal(rec)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenRatingModal(rec);
+                            }}
                             disabled={isRatingLoading}
                             className={`px-3 py-1.5 rounded-full flex items-center justify-center transition-all duration-200 text-xs font-medium flex-shrink-0 ${
                               isRatingLoading
@@ -400,9 +421,10 @@ export const RecommendationsSectionClient = ({
 
                           {/* Want to Watch Button - now second */}
                           <button
-                            onClick={() =>
-                              handleToggleWantToWatch(rec, isInWantToWatch)
-                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleWantToWatch(rec, isInWantToWatch);
+                            }}
                             disabled={isWantToWatchLoading}
                             className={`px-3 py-1.5 rounded-full flex items-center justify-center transition-all duration-200 text-xs font-medium flex-shrink-0 ${
                               isWantToWatchLoading
