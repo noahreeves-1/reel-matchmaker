@@ -1,4 +1,4 @@
-import { TMDBResponse, TMDBMovie } from "@/lib/tmdb";
+import { TMDBResponse, TMDBMovie, TMDBGenresResponse } from "@/lib/tmdb";
 
 // SERVER-SIDE DATA FETCHING: Direct TMDB API calls for Server Components
 // This file provides server-side functions for fetching movie data during build/request time
@@ -139,5 +139,87 @@ export const getUserMovieDetails = async (movieIds: number[]) => {
   } catch (error) {
     console.error("Failed to fetch user movie details:", error);
     return {};
+  }
+};
+
+/**
+ * Server-side function for fetching movie genres
+ * Used in Server Components for SSR/ISR
+ */
+export const getInitialGenres = async (): Promise<TMDBGenresResponse> => {
+  try {
+    const apiKey = process.env.TMDB_API_KEY;
+
+    if (!apiKey) {
+      throw new Error("TMDB API key not configured");
+    }
+
+    // Add timeout to prevent hanging
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 5000); // 5 second timeout
+
+    const url = `${TMDB_BASE_URL}/genre/movie/list?api_key=${apiKey}&language=en-US`;
+
+    const response = await fetch(url, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(
+        `TMDB API error: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const genres = await response.json();
+    return genres;
+  } catch (error) {
+    console.error("getInitialGenres: Error occurred:", error);
+    return { genres: [] };
+  }
+};
+
+/**
+ * Server-side function for fetching movies by genre
+ * Used in Server Components for SSR/ISR
+ */
+export const getMoviesByGenreData = async (
+  genreId: number,
+  page: number = 1
+): Promise<TMDBResponse> => {
+  try {
+    const apiKey = process.env.TMDB_API_KEY;
+
+    if (!apiKey) {
+      throw new Error("TMDB API key not configured");
+    }
+
+    // Fetch movies by genre with popularity sorting
+    const response = await fetch(
+      `${TMDB_BASE_URL}/discover/movie?api_key=${apiKey}&language=en-US&with_genres=${genreId}&page=${page}&sort_by=popularity.desc`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `TMDB API error: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const movies = await response.json();
+    return movies;
+  } catch (error) {
+    console.error(`Failed to fetch movies for genre ${genreId}:`, error);
+    return { results: [], page: 1, total_pages: 0, total_results: 0 };
   }
 };
