@@ -103,8 +103,11 @@ async function searchMovieByTitle(
     return null;
   }
 
+  // Strip year from title if present (e.g., "Coco (2017)" -> "Coco")
+  const cleanTitle = title.replace(/\s*\(\d{4}\)\s*$/, "").trim();
+
   try {
-    const encodedTitle = encodeURIComponent(title);
+    const encodedTitle = encodeURIComponent(cleanTitle);
     const response = await fetch(
       `${TMDB_BASE_URL}/search/movie?api_key=${apiKey}&language=en-US&query=${encodedTitle}&page=1`,
       {
@@ -282,7 +285,7 @@ The user has these movies in their want to watch list (movies they want to see):
           }
 
 Please recommend 5 movies that the user would likely enjoy. For each recommendation, provide:
-1. The exact movie title (including the year if there are multiple movies with the same title)
+1. The exact movie title (DO NOT include the year - just the movie name)
 2. A brief reason why you're recommending it (1-2 sentences)
 3. A detailed, personalized reason that includes: what the movie is about, why it's interesting based on their taste, what audiences/critics think about it, AND a sentence about how others who liked similar movies to the user's highly-rated films also enjoyed this movie (3-4 sentences total)
 
@@ -297,8 +300,8 @@ You MUST respond with ONLY a JSON array containing objects with "title", "reason
 Example format:
 [
   {
-    "title": "Movie Title",
-    "reason": "This action-packed thriller shares similar themes and pacing to movies you rated highly.",
+    "title": "Inception",
+    "reason": "This mind-bending thriller shares similar themes and pacing to movies you rated highly.",
     "personalizedReason": "This gripping psychological thriller follows a detective's descent into madness as he investigates a series of increasingly disturbing crimes. Given your love for complex character studies like The Dark Knight (10/10), you'll appreciate how this film explores the blurred lines between justice and obsession. Critics praised its atmospheric tension and mind-bending plot twists, with audiences calling it 'a masterclass in psychological suspense' that keeps you guessing until the very end. Fans of The Dark Knight and other Christopher Nolan films consistently rate this movie highly, with many saying it captures the same intellectual depth and visual storytelling they love."
   }
 ]
