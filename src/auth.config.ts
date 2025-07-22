@@ -9,9 +9,9 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const loggedIn = !!auth?.user;
-      const onDashboard = nextUrl.pathname.startsWith("/my-movies");
+      const myMoviesPage = nextUrl.pathname.startsWith("/my-movies");
 
-      if (onDashboard) return loggedIn; // gate dashboard
+      if (myMoviesPage) return loggedIn; // gate dashboard
       return true; // public routes stay public, logged-in users can access home page
     },
   },
