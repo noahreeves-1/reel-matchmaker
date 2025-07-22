@@ -45,9 +45,6 @@ export const Header = () => {
               width={40}
               height={40}
             />
-            <h1 className="ml-2 text-xl font-bold text-slate-900 dark:text-white">
-              Reel Matchmaker
-            </h1>
           </Link>
 
           <nav className="flex items-center space-x-8">

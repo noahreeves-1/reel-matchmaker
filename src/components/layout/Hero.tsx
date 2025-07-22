@@ -27,6 +27,9 @@ export const Hero = () => (
           width={100}
           height={100}
         />
+        <h1 className="ml-2 text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500">
+          Reel Matchmaker
+        </h1>
       </div>
       <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
         Discover Your Next Favorite Movie
